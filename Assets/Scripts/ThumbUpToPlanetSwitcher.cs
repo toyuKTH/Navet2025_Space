@@ -9,8 +9,8 @@ public class ThumbUpToPlanetSwitcher : MonoBehaviour
     public HolisticTrackingSolution holistic;
 
     [Header("面板引用")]
-    public GameObject welcomePanel;   // 原来的 testWelcomePanel
-    public GameObject targetPanel;    // 原来的 planetRoot，改为指向 TargetPanel
+    public GameObject welcomePanel;
+    public GameObject targetPanel;
 
     [Header("手势判定")]
     public float gestureHoldTime = 1.0f;
@@ -89,8 +89,20 @@ public class ThumbUpToPlanetSwitcher : MonoBehaviour
     void TriggerTargetPanel()
     {
         hasTriggered = true;
-        welcomePanel.SetActive(false);  // 关闭欢迎面板
-        targetPanel.SetActive(true);    // 打开 TargetPanel，三个行星会随之显示
-        Debug.Log("👍 Thumb Up，切换到 TargetPanel");
+
+        // 调用 PanelSwitcher
+        PanelSwitcher switcher = FindObjectOfType<PanelSwitcher>();
+        if (switcher != null)
+        {
+            switcher.SwitchPanel(welcomePanel, targetPanel);
+        }
+        else
+        {
+            // 没有管理器就直接切
+            welcomePanel.SetActive(false);
+            targetPanel.SetActive(true);
+        }
+
+        Debug.Log("👍 Thumb Up，触发面板跳转");
     }
 }
