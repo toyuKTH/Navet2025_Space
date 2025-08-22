@@ -72,7 +72,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DryLevel: 1
     - _DstBlend: 0
-    - _FreezeLevel: 1
+    - _FreezeLevel: 0.5578113
     - _GlossMapScale: 1
     - _Glossiness: 0.081
     - _GlossyReflections: 1
