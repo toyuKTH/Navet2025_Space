@@ -16,6 +16,9 @@ public class ThumbUpToPlanetSwitcher : MonoBehaviour
     public float gestureHoldTime = 1.0f;
     public int requiredStableFrames = 3;
 
+    [Header("动画控制")]
+    public Animator cameraAnimator;
+
     private Vector3[] currentLandmarks = new Vector3[21];
     private bool hasHandData = false;
     private bool landmarksUpdated = false;
@@ -91,17 +94,22 @@ public class ThumbUpToPlanetSwitcher : MonoBehaviour
         hasTriggered = true;
 
         // 调用 PanelSwitcher
-        PanelSwitcher switcher = FindObjectOfType<PanelSwitcher>();
-        if (switcher != null)
-        {
-            switcher.SwitchPanel(welcomePanel, targetPanel);
-        }
-        else
-        {
-            // 没有管理器就直接切
-            welcomePanel.SetActive(false);
-            targetPanel.SetActive(true);
-        }
+        /*        PanelSwitcher switcher = FindObjectOfType<PanelSwitcher>();
+                if (switcher != null)
+                {
+                    switcher.SwitchPanel(welcomePanel, targetPanel);
+                }
+                else
+                {
+                    // 没有管理器就直接切
+                    welcomePanel.SetActive(false);
+                    //targetPanel.SetActive(true);
+
+
+                }*/
+        welcomePanel.SetActive(false);
+        //触发动画
+        cameraAnimator.SetTrigger("toSelection");
 
         Debug.Log("👍 Thumb Up，触发面板跳转");
     }

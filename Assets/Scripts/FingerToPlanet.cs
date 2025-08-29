@@ -19,6 +19,12 @@ public class FingerOnPlanetGroupGlobal : MonoBehaviour
     public int requiredStableFrames = 2;
     public float fingerUpThreshold = 0.05f;  // 更严格的竖起判定
 
+    [Header("动画控制（Main Camera 或其他目标上挂的 Animator）")]
+    public Animator cameraAnimator;
+    public string triggerForOne = "toPlane1"; // 1 指触发的 Trigger
+    public string triggerForTwo = "toPlane2"; // 2 指触发的 Trigger
+    public string triggerForThree = "toPlane3"; // 3 指触发的 Trigger
+
     private HolisticTrackingGraph graph;
     private Vector3[] lm = new Vector3[21];
     private bool gotFrame;
@@ -90,9 +96,13 @@ public class FingerOnPlanetGroupGlobal : MonoBehaviour
                 {
                     Debug.Log($"[Finger] ✅ 识别到手指数={count}");
 
-                    if (count == 1 && planet1Panel) switcher.SwitchTo(planet1Panel);
-                    else if (count == 2 && planet2Panel) switcher.SwitchTo(planet2Panel);
-                    else if (count == 3 && planet3Panel) switcher.SwitchTo(planet3Panel);
+                    /*                    if (count == 1 && planet1Panel) switcher.SwitchTo(planet1Panel);
+                                        else if (count == 2 && planet2Panel) switcher.SwitchTo(planet2Panel);
+                                        else if (count == 3 && planet3Panel) switcher.SwitchTo(planet3Panel);*/
+                    //触发动画
+                    if (count == 1 && planet1Panel) cameraAnimator.SetTrigger(triggerForOne);
+                    else if (count == 2 && planet2Panel) cameraAnimator.SetTrigger(triggerForTwo);
+                    else if (count == 3 && planet3Panel) cameraAnimator.SetTrigger(triggerForThree);
 
                     frameStable = 0; holdTimer = 0f; currentCount = 0;
                 }
