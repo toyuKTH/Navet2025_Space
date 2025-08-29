@@ -14,6 +14,14 @@ using Melanchall.DryWetMidi.Common;
 /// 设为 loopMIDI / IAC 里能看到的精确名称（或留空自动取第一个）。
 public class SonificationMelody : MonoBehaviour
 {
+
+    // === 轻量参数（可在 Inspector 暂时不暴露）===
+    private int lastRootMidi = int.MinValue;         // 记住上一个根音，做小步进行
+    [SerializeField] int maxRootStep = 5;            // 相邻根音最大跳进（半音），避免大跳
+    [SerializeField] int registerLow = 50;           // 限定和弦演奏音域下限（可按乐器调）
+    [SerializeField] int registerHigh = 76;          // 限定和弦演奏音域上限
+    [SerializeField] float triadBias = 0.6f;         // 生成三和弦的概率（其余是双音）
+
     [Header("MIDI Output")]
     [Tooltip("留空=自动选第一个输出设备；或填 loopMIDI/IAC 的精确名称")]
     public string midiOutName = "";
@@ -87,6 +95,9 @@ public class SonificationMelody : MonoBehaviour
         if (autoStart) StartMelody();
         // 连续 CC / PitchBend 更新
         StartCoroutine(ContinuousControllers());
+
+        lastRootMidi = baseNote + transposeSemitones;
+
     }
 
     void OnDestroy() { outDev?.Dispose(); }
@@ -110,36 +121,36 @@ public class SonificationMelody : MonoBehaviour
     // —— 主循环：随机协和音符 —— //
     IEnumerator NoteLoop()
     {
-        var wait = new WaitForSeconds(0.2f);
-
         while (true)
         {
-            // 1) 计算当前触发间隔（rate01 从最大间隔渐变到最小间隔）
+            // 1) 计算当前触发间隔（rate01 从最大间隔渐变到最小间隔），稍降抖动
             float baseInterval = Mathf.Lerp(intervalRange.y, intervalRange.x, rate01);
-            float jitter = 1f + Random.Range(-intervalJitter, intervalJitter);
-            float interval = Mathf.Max(0.05f, baseInterval * jitter);
+            float jitter = 1f + Random.Range(-Mathf.Min(intervalJitter, 0.08f), Mathf.Min(intervalJitter, 0.08f));
+            float interval = Mathf.Max(0.08f, baseInterval * jitter);
 
-            // 2) 选一个协和音程 + 随机八度
-            int deg = consonantIntervals[Random.Range(0, consonantIntervals.Length)];
-            int oct = Random.Range(-octaveRange, octaveRange + 1) * 12;
-            int note = baseNote + transposeSemitones + deg + oct;
+            // 2) 选根音（限制与上一次的跳进 & 保持在指定音域），再构建“和谐的双音/三音”
+            int root = ChooseNextRoot();
+            var chordNotes = BuildChord(root);  // 包含 root，本次要同时发音的若干音
 
-            // 3) 力度与音长
+            // 3) 力度与音长（音长更接近“连奏”，占比 70%~95%）
             int vel = Random.Range(velocityRange.x, velocityRange.y + 1);
-            float dur = Random.Range(noteLengthRange.x, noteLengthRange.y);
+            float dur = Mathf.Clamp(interval * Random.Range(0.70f, 0.95f), 0.05f, 4f);
 
-            // 4) 发音
-            SendNoteOn(note, vel);
-            // 提前结束保护
-            if (dur > interval * 0.9f) dur = interval * 0.9f;
+            // 4) 发音（同一时刻发出和弦的每个音）
+            for (int i = 0; i < chordNotes.Count; i++)
+                SendNoteOn(chordNotes[i], vel);
+
             yield return new WaitForSeconds(dur);
-            SendNoteOff(note);
 
-            // 5) 等到下一次触发
+            for (int i = 0; i < chordNotes.Count; i++)
+                SendNoteOff(chordNotes[i]);
+
+            // 5) 边留一点点空隙，避免完全糊成一片
             float rest = Mathf.Max(0.01f, interval - dur);
             yield return new WaitForSeconds(rest);
         }
     }
+
 
     // —— 连续控制：滤波/共振/失真 + Pitch Bend —— //
     IEnumerator ContinuousControllers()
@@ -194,4 +205,68 @@ public class SonificationMelody : MonoBehaviour
             Channel = (FourBitNumber)channel
         });
     }
+
+    // 选一个“接近上次”的根音，避免频繁跨八度；同时限定在一个舒适音域
+    int ChooseNextRoot()
+    {
+        // 从你的“协和集合”里挑度数（相对 baseNote）
+        int deg = consonantIntervals[Random.Range(0, consonantIntervals.Length)];
+        int candidate = baseNote + transposeSemitones + deg;
+
+        // 第一次：把它夹到音域里并记录
+        if (lastRootMidi == int.MinValue)
+        {
+            candidate = Mathf.Clamp(candidate, registerLow, registerHigh);
+            lastRootMidi = candidate;
+            return candidate;
+        }
+
+        // 尽量靠近上一次根音（跨 12 调整落位），以减少跳进
+        // 让 candidate 向 lastRootMidi 的邻近八度对齐
+        while (candidate - lastRootMidi > maxRootStep) candidate -= 12;
+        while (lastRootMidi - candidate > maxRootStep) candidate += 12;
+
+        // 最终再夹到音域里（若触边，顺便记一下）
+        candidate = Mathf.Clamp(candidate, registerLow, registerHigh);
+        lastRootMidi = candidate;
+        return candidate;
+    }
+
+    // 构建“听感和谐”的双音/三音（根音 + 三度(+五度)）
+    // 三和弦：随机大小三度 + 完全五度；双音：在 {m3, M3, P5, M6} 中挑一个
+    System.Collections.Generic.List<int> BuildChord(int root)
+    {
+        var notes = new System.Collections.Generic.List<int>();
+        notes.Add(root);
+
+        bool makeTriad = Random.value < triadBias; // 约 60% 概率做三和弦
+        if (makeTriad)
+        {
+            int third = (Random.value < 0.5f) ? 3 : 4; // m3 或 M3
+            notes.Add(root + third);
+            notes.Add(root + 7); // 完全五度
+
+            // 防止过高：若最高音超域，整体降八度；若过低则整体升八度
+            int max = Mathf.Max(notes[0], notes[1], notes[2]);
+            int min = Mathf.Min(notes[0], notes[1], notes[2]);
+            if (max > registerHigh) { for (int i = 0; i < notes.Count; i++) notes[i] -= 12; }
+            if (min < registerLow) { for (int i = 0; i < notes.Count; i++) notes[i] += 12; }
+        }
+        else
+        {
+            // 双音：挑一个“协和双音”间隔
+            int[] dyads = new int[] { 3, 4, 7, 9 }; // m3, M3, P5, M6
+            int iv = dyads[Random.Range(0, dyads.Length)];
+            notes.Add(root + iv);
+
+            // 简单夹域
+            int max = Mathf.Max(notes[0], notes[1]);
+            int min = Mathf.Min(notes[0], notes[1]);
+            if (max > registerHigh) { notes[0] -= 12; notes[1] -= 12; }
+            if (min < registerLow) { notes[0] += 12; notes[1] += 12; }
+        }
+
+        return notes;
+    }
+
 }

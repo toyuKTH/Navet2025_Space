@@ -284,7 +284,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1376436592}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8c8c6f2b71d90f54cb45077838590640, type: 3}
   m_Name: 
@@ -429,7 +429,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  midiOutName: loopMIDI Port
+  midiOutName: VMIDI1
   channel: 0
   baseNote: 60
   consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
@@ -443,7 +443,7 @@ MonoBehaviour:
   pitchBendRangeSemitones: 12
   pitchBendNorm: 0
   bendSlew: 0.8
-  timbre01: 0.5
+  timbre01: 0.585
   timbreSlew: 0.85
   ccCutoff: 31
   ccResonance: 39
