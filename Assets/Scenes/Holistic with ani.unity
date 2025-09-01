@@ -758,7 +758,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 253518145}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8609a5f73d0496f4c85a7e4c36084df7, type: 3}
   m_Name: 
@@ -966,10 +966,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10de8ef523c8ae844a1b95ddfd272371, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  holistic: {fileID: 0}
-  switcher: {fileID: 0}
-  activeOnPanels: []
-  gestureHoldTime: 1
+  mediaTracker: {fileID: 0}
+  panelController: {fileID: 0}
+  mainPlanetPanel: {fileID: 0}
+  activePanels: []
+  cameraAnimator: {fileID: 0}
+  backTriggerName: BackToMain
+  backAnimationDelay: 1.5
+  soundPlayer: {fileID: 0}
+  fistGestureSound: {fileID: 0}
+  gestureHoldDuration: 1
   requiredStableFrames: 3
   cooldownSeconds: 5
 --- !u!1 &282644195
@@ -981,6 +987,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 282644196}
+  - component: {fileID: 282644198}
   m_Layer: 0
   m_Name: PlanetGroup
   m_TagString: Untagged
@@ -1007,6 +1014,38 @@ Transform:
   - {fileID: 848449775}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &282644198
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 282644195}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cef43ccba89b674b80784cb62341196, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mediaTracker: {fileID: 275874969}
+  panelController: {fileID: 538391958}
+  mainPlanetPanel: {fileID: 282644195}
+  cameraAnimator: {fileID: 1264297884}
+  soundPlayer: {fileID: 0}
+  oneFingerTargetPanel: {fileID: 1019469775}
+  oneFingerTriggerName: toPlane1
+  oneFingerSound: {fileID: 0}
+  oneFingerDelay: 3
+  twoFingerTargetPanel: {fileID: 1243714321}
+  twoFingerTriggerName: toPlane2
+  twoFingerSound: {fileID: 0}
+  twoFingerDelay: 3
+  threeFingerTargetPanel: {fileID: 1962726114}
+  threeFingerTriggerName: toPlane3
+  threeFingerSound: {fileID: 0}
+  threeFingerDelay: 3
+  gestureHoldDuration: 0.5
+  minStableFrameCount: 2
+  fingerDetectionThreshold: 0.05
 --- !u!1 &298505179
 GameObject:
   m_ObjectHideFlags: 0
@@ -1549,6 +1588,8 @@ GameObject:
   m_Component:
   - component: {fileID: 500405792}
   - component: {fileID: 500405791}
+  - component: {fileID: 500405793}
+  - component: {fileID: 500405794}
   m_Layer: 0
   m_Name: GestureRouter
   m_TagString: Untagged
@@ -1589,6 +1630,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &500405793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500405790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 349ea8e87b5255d449a93ca89484775e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainEarth: {fileID: 768488245}
+  panelSwitcher: {fileID: 0}
+  planetGroupPanel: {fileID: 282644195}
+  hiddenEarthPanels:
+  - {fileID: 1019469775}
+  - {fileID: 1243714321}
+  - {fileID: 1962726114}
+  showDebugLog: 1
+--- !u!114 &500405794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500405790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10de8ef523c8ae844a1b95ddfd272371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mediaTracker: {fileID: 275874969}
+  panelController: {fileID: 0}
+  mainPlanetPanel: {fileID: 282644195}
+  activePanels:
+  - {fileID: 1019469775}
+  - {fileID: 1243714321}
+  - {fileID: 1962726114}
+  cameraAnimator: {fileID: 0}
+  backTriggerName: BackToMain
+  backAnimationDelay: 1.5
+  soundPlayer: {fileID: 0}
+  fistGestureSound: {fileID: 0}
+  gestureHoldDuration: 1
+  requiredStableFrames: 3
+  cooldownSeconds: 3
 --- !u!1 &501599197 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 26291658c810dac48b0e6ace2bc4ee41, type: 3}
@@ -1853,6 +1941,52 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
+--- !u!1 &538391955
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 538391957}
+  - component: {fileID: 538391958}
+  m_Layer: 0
+  m_Name: SimplePanelSwitcher
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &538391957
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 538391955}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 41.85699, y: -44.176514, z: 80}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &538391958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 538391955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e89e66c787ab9044946ad89ea3893b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  current: {fileID: 282644195}
+  showDebugLog: 1
 --- !u!1001 &573041276
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3968,18 +4102,21 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 974239145}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10de8ef523c8ae844a1b95ddfd272371, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  holistic: {fileID: 275874969}
-  switcher: {fileID: 974239149}
-  activeOnPanels:
-  - {fileID: 1019469775}
-  - {fileID: 1243714321}
-  - {fileID: 1962726114}
-  gestureHoldTime: 2
+  mediaTracker: {fileID: 0}
+  panelController: {fileID: 0}
+  mainPlanetPanel: {fileID: 0}
+  activePanels: []
+  cameraAnimator: {fileID: 0}
+  backTriggerName: BackToMain
+  backAnimationDelay: 1.5
+  soundPlayer: {fileID: 0}
+  fistGestureSound: {fileID: 0}
+  gestureHoldDuration: 1
   requiredStableFrames: 3
   cooldownSeconds: 3
 --- !u!114 &974239151
@@ -3989,7 +4126,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 974239145}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9fbb52660a9b68941a27ea0afb5e912f, type: 3}
   m_Name: 
@@ -8279,3 +8416,4 @@ SceneRoots:
   - {fileID: 1176770427}
   - {fileID: 2145538756}
   - {fileID: 2143343884}
+  - {fileID: 538391957}

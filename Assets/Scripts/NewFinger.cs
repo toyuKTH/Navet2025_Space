@@ -38,25 +38,19 @@ public class HandGestureController : MonoBehaviour
     public GameObject oneFingerTargetPanel; // 1指目标面板
     public string oneFingerTriggerName = "toPlanet1"; // 1指动画触发器
     public AudioClip oneFingerSound; // 1指音效
-    public float oneFingerDelay = 1.0f; // 1指延迟时间
-    public GameObject[] oneFingerHideObjects; // 1指时要隐藏的物体
-    public GameObject[] oneFingerShowObjects; // 1指时要显示的物体
+    public float oneFingerDelay = 3.0f; // 1指延迟时间
     
     [Header("2指手势配置")]
     public GameObject twoFingerTargetPanel; // 2指目标面板
     public string twoFingerTriggerName = "toPlanet2"; // 2指动画触发器
     public AudioClip twoFingerSound; // 2指音效
-    public float twoFingerDelay = 1.0f; // 2指延迟时间
-    public GameObject[] twoFingerHideObjects; // 2指时要隐藏的物体
-    public GameObject[] twoFingerShowObjects; // 2指时要显示的物体
+    public float twoFingerDelay = 3.0f; // 2指延迟时间
     
     [Header("3指手势配置")]
     public GameObject threeFingerTargetPanel; // 3指目标面板
     public string threeFingerTriggerName = "toPlanet3"; // 3指动画触发器
     public AudioClip threeFingerSound; // 3指音效
-    public float threeFingerDelay = 1.0f; // 3指延迟时间
-    public GameObject[] threeFingerHideObjects; // 3指时要隐藏的物体
-    public GameObject[] threeFingerShowObjects; // 3指时要显示的物体
+    public float threeFingerDelay = 3.0f; // 3指延迟时间
     
     [Header("检测参数")]
     public float gestureHoldDuration = 0.5f;
@@ -188,13 +182,12 @@ public class HandGestureController : MonoBehaviour
     IEnumerator ExecuteGestureByFingerCount(int fingerCount)
     {
         isPlayingAnimation = true;
+        Debug.Log($"[HandGesture] ⭐ 开始执行手势序列，手指数: {fingerCount}");
         
         GameObject targetPanel = null;
         string triggerName = "";
         AudioClip soundEffect = null;
         float delay = 1.0f;
-        GameObject[] hideObjects = null;
-        GameObject[] showObjects = null;
         
         // 根据手指数量选择对应的配置
         switch (fingerCount)
@@ -204,24 +197,21 @@ public class HandGestureController : MonoBehaviour
                 triggerName = oneFingerTriggerName;
                 soundEffect = oneFingerSound;
                 delay = oneFingerDelay;
-                hideObjects = oneFingerHideObjects;
-                showObjects = oneFingerShowObjects;
+                Debug.Log($"[HandGesture] 📝 1指配置 - Panel: {targetPanel?.name}, Trigger: {triggerName}, Delay: {delay}s");
                 break;
             case 2:
                 targetPanel = twoFingerTargetPanel;
                 triggerName = twoFingerTriggerName;
                 soundEffect = twoFingerSound;
                 delay = twoFingerDelay;
-                hideObjects = twoFingerHideObjects;
-                showObjects = twoFingerShowObjects;
+                Debug.Log($"[HandGesture] 📝 2指配置 - Panel: {targetPanel?.name}, Trigger: {triggerName}, Delay: {delay}s");
                 break;
             case 3:
                 targetPanel = threeFingerTargetPanel;
                 triggerName = threeFingerTriggerName;
                 soundEffect = threeFingerSound;
                 delay = threeFingerDelay;
-                hideObjects = threeFingerHideObjects;
-                showObjects = threeFingerShowObjects;
+                Debug.Log($"[HandGesture] 📝 3指配置 - Panel: {targetPanel?.name}, Trigger: {triggerName}, Delay: {delay}s");
                 break;
             default:
                 Debug.LogWarning($"[HandGesture] ⚠️ 未配置 {fingerCount} 指手势");
@@ -231,64 +221,92 @@ public class HandGestureController : MonoBehaviour
         
         Debug.Log($"[HandGesture] 🎬 开始执行 {fingerCount} 指手势动画");
         
+        // 验证组件状态
+        Debug.Log($"[HandGesture] 🔍 组件检查 - CameraAnimator: {(cameraAnimator != null ? "✅" : "❌")}, " +
+                  $"PanelController: {(panelController != null ? "✅" : "❌")}, " +
+                  $"SoundPlayer: {(soundPlayer != null ? "✅" : "❌")}");
+        
         // 1. 播放音效（可选）
         if (soundPlayer != null && soundEffect != null)
         {
             soundPlayer.PlayOneShot(soundEffect);
+            Debug.Log($"[HandGesture] 🎵 播放音效: {soundEffect.name}");
+        }
+        else if (soundEffect == null)
+        {
+            Debug.Log($"[HandGesture] 🔇 跳过音效播放（未设置音效）");
         }
         
         // 2. 触发相机动画
         if (cameraAnimator != null && !string.IsNullOrEmpty(triggerName))
         {
+            Debug.Log($"[HandGesture] 🎥 触发相机动画开始: {triggerName}");
             cameraAnimator.SetTrigger(triggerName);
             cameraAnimator.SetInteger("FingerCount", fingerCount);
-            Debug.Log($"[HandGesture] 🎥 触发相机动画: {triggerName}");
+            Debug.Log($"[HandGesture] ✅ 相机动画已触发");
+            
+            // 验证触发器状态
+            var triggerParam = cameraAnimator.parameters;
+            foreach (var param in triggerParam)
+            {
+                if (param.name == triggerName && param.type == AnimatorControllerParameterType.Trigger)
+                {
+                    Debug.Log($"[HandGesture] 🔧 找到触发器参数: {param.name}");
+                    break;
+                }
+            }
         }
         else
         {
-            Debug.LogWarning($"[HandGesture] ⚠️ 相机动画配置缺失");
+            Debug.LogWarning($"[HandGesture] ⚠️ 相机动画配置问题 - Animator: {(cameraAnimator != null ? "存在" : "缺失")}, TriggerName: '{triggerName}'");
         }
         
-        // 3. 控制物体显示/隐藏
-        ControlObjectsVisibility(hideObjects, false); // 隐藏指定物体
-        ControlObjectsVisibility(showObjects, true);  // 显示指定物体
-        
-        // 4. 等待动画播放完成 + 延迟
+        // 3. 等待动画播放完成 + 延迟
+        Debug.Log($"[HandGesture] ⏱️ 开始等待动画播放，延迟时间: {delay} 秒");
+        float startTime = Time.time;
         yield return new WaitForSeconds(delay);
+        float endTime = Time.time;
+        Debug.Log($"[HandGesture] ⏰ 延迟结束，实际等待时间: {(endTime - startTime):F2} 秒");
         
-        // 5. 使用SimplePanelSwitcher执行面板切换
-        if (targetPanel != null && panelController != null)
+        // 4. 使用SimplePanelSwitcher执行面板切换
+        Debug.Log($"[HandGesture] 🔄 准备执行面板切换");
+        
+        if (panelController == null)
         {
-            panelController.SwitchTo(targetPanel);
-            Debug.Log($"[HandGesture] 🎯 切换到面板: {targetPanel.name}");
+            Debug.LogError($"[HandGesture] ❌ PanelController 为空！");
+            isPlayingAnimation = false;
+            yield break;
         }
-        else if (targetPanel == null)
+        
+        if (targetPanel == null)
         {
-            Debug.LogWarning($"[HandGesture] ⚠️ {fingerCount} 指手势未设置目标面板");
+            Debug.LogError($"[HandGesture] ❌ {fingerCount} 指手势未设置目标面板");
+            isPlayingAnimation = false;
+            yield break;
         }
-        else if (panelController == null)
+        
+        Debug.Log($"[HandGesture] 🎯 执行面板切换: {panelController.current?.name} -> {targetPanel.name}");
+        Debug.Log($"[HandGesture] 📊 切换前状态 - Current Panel Active: {(panelController.current?.activeInHierarchy)}, " +
+                  $"Target Panel Active: {targetPanel.activeInHierarchy}");
+        
+        panelController.SwitchTo(targetPanel);
+        
+        // 等待一帧后检查切换结果
+        yield return null;
+        Debug.Log($"[HandGesture] 📊 切换后状态 - New Current: {panelController.current?.name}, " +
+                  $"Target Panel Active: {targetPanel.activeInHierarchy}");
+        
+        if (panelController.current == targetPanel)
         {
-            Debug.LogWarning($"[HandGesture] ⚠️ 未设置SimplePanelSwitcher");
+            Debug.Log($"[HandGesture] ✅ 面板切换成功完成: {targetPanel.name}");
+        }
+        else
+        {
+            Debug.LogWarning($"[HandGesture] ⚠️ 面板切换可能未成功");
         }
         
         isPlayingAnimation = false;
-    }
-    
-    /// <summary>
-    /// 控制物体的显示/隐藏
-    /// </summary>
-    void ControlObjectsVisibility(GameObject[] objects, bool visible)
-    {
-        if (objects == null) return;
-        
-        foreach (var obj in objects)
-        {
-            if (obj != null)
-            {
-                obj.SetActive(visible);
-                Debug.Log($"[HandGesture] {(visible ? "显示" : "隐藏")}物体: {obj.name}");
-            }
-        }
+        Debug.Log($"[HandGesture] 🏁 手势执行序列完成，解除动画锁定");
     }
 
     int CalculateFingerCount(Vector3[] landmarks)
