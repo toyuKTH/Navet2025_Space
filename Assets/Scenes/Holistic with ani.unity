@@ -781,6 +781,76 @@ MonoBehaviour:
   thumbUpAngleDeg: 35
   showDebugInfo: 1
   showDetailedLog: 0
+--- !u!1 &267165907
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 267165908}
+  - component: {fileID: 267165909}
+  m_Layer: 0
+  m_Name: 'MIDI3 control '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &267165908
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 267165907}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145538756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &267165909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 267165907}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeInSeconds: 1.5
+  fadeOutSeconds: 1.2
+  volumeCC: 11
+  targetVolume: 110
+  maxRootStep: 5
+  registerLow: 50
+  registerHigh: 76
+  triadBias: 0.6
+  midiOutName: VMIDI3
+  channel: 0
+  baseNote: 60
+  consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
+  velocityRange: {x: 70, y: 110}
+  intervalRange: {x: 3.75, y: 10.75}
+  rate01: 0.5
+  intervalJitter: 0.1
+  transposeSemitones: 0
+  pitchBendRangeSemitones: 12
+  pitchBendNorm: 0
+  bendSlew: 0.8
+  timbre01: 0.5
+  timbreSlew: 0.85
+  ccCutoff: 74
+  ccResonance: 71
+  ccDistortion: 20
+  autoStart: 1
 --- !u!1 &275874966
 GameObject:
   m_ObjectHideFlags: 0
@@ -1937,7 +2007,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 5306694bd22544546a584d4677c00bfd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a53adabb257978046872675908f7a905, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2382,6 +2452,76 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2125477430}
   m_SourcePrefab: {fileID: 100100000, guid: 26291658c810dac48b0e6ace2bc4ee41, type: 3}
+--- !u!1 &646201870
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 646201871}
+  - component: {fileID: 646201872}
+  m_Layer: 0
+  m_Name: MIDI5 control
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &646201871
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646201870}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145538756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &646201872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646201870}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeInSeconds: 1.5
+  fadeOutSeconds: 1.2
+  volumeCC: 11
+  targetVolume: 110
+  maxRootStep: 5
+  registerLow: 50
+  registerHigh: 76
+  triadBias: 0.6
+  midiOutName: VMIDI5
+  channel: 0
+  baseNote: 60
+  consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
+  velocityRange: {x: 70, y: 110}
+  intervalRange: {x: 3.75, y: 10.75}
+  rate01: 0.5
+  intervalJitter: 0.1
+  transposeSemitones: 0
+  pitchBendRangeSemitones: 12
+  pitchBendNorm: 0
+  bendSlew: 0.8
+  timbre01: 0.5
+  timbreSlew: 0.85
+  ccCutoff: 74
+  ccResonance: 71
+  ccDistortion: 20
+  autoStart: 1
 --- !u!1 &660698712
 GameObject:
   m_ObjectHideFlags: 0
@@ -3039,6 +3179,76 @@ MonoBehaviour:
   requiredStableFrames: 2
   showDebugInfo: 0
   showDetailedLog: 0
+--- !u!1 &785550050
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 785550051}
+  - component: {fileID: 785550052}
+  m_Layer: 0
+  m_Name: MIDI1 control
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &785550051
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 785550050}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145538756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &785550052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 785550050}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeInSeconds: 1.5
+  fadeOutSeconds: 1.2
+  volumeCC: 11
+  targetVolume: 110
+  maxRootStep: 5
+  registerLow: 50
+  registerHigh: 76
+  triadBias: 0.6
+  midiOutName: VMIDI1
+  channel: 0
+  baseNote: 60
+  consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
+  velocityRange: {x: 70, y: 110}
+  intervalRange: {x: 0.25, y: 0.8}
+  rate01: 0.5
+  intervalJitter: 0.1
+  transposeSemitones: 0
+  pitchBendRangeSemitones: 12
+  pitchBendNorm: 0
+  bendSlew: 0.8
+  timbre01: 0.5
+  timbreSlew: 0.85
+  ccCutoff: 74
+  ccResonance: 71
+  ccDistortion: 20
+  autoStart: 1
 --- !u!1001 &823583520
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3793,6 +4003,11 @@ MonoBehaviour:
   gestureHoldTime: 2
   requiredStableFrames: 2
   fingerUpThreshold: 0.05
+  cameraAnimator: {fileID: 1264297884}
+  triggerForOne: toPlane1
+  triggerForTwo: toPlane2
+  triggerForThree: toPlane3
+  midiStageManager: {fileID: 2143343883}
 --- !u!1 &1011279641 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 26291658c810dac48b0e6ace2bc4ee41, type: 3}
@@ -4320,125 +4535,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1224176776
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1224176780}
-  - component: {fileID: 1224176779}
-  - component: {fileID: 1224176778}
-  - component: {fileID: 1224176777}
-  m_Layer: 0
-  m_Name: Main Camera (1)
-  m_TagString: MainCamera
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1224176777
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1224176776}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cf92e5dbec5f534090fae229fe4e6e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  zoomSpeed: 1
-  minZoom: 10
-  maxZoom: 80
-  panSpeed: 1
-  panLimit: 20
-  smoothTime: 0.3
-  zoomSensitivity: 10
-  panSensitivity: 15
-  minHandDistance: 0.1
-  maxHandDistance: 0.8
-  distanceChangeThreshold: 0.01
-  panChangeThreshold: 0.008
-  showDebugInfo: 1
-  showDetailedAnalysis: 0
---- !u!81 &1224176778
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1224176776}
-  m_Enabled: 1
---- !u!20 &1224176779
-Camera:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1224176776}
-  m_Enabled: 1
-  serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
-  m_projectionMatrixMode: 1
-  m_GateFitMode: 2
-  m_FOVAxisMode: 0
-  m_Iso: 200
-  m_ShutterSpeed: 0.005
-  m_Aperture: 16
-  m_FocusDistance: 10
-  m_FocalLength: 50
-  m_BladeCount: 5
-  m_Curvature: {x: 2, y: 11}
-  m_BarrelClipping: 0.25
-  m_Anamorphism: 0
-  m_SensorSize: {x: 36, y: 24}
-  m_LensShift: {x: 0, y: 0}
-  m_NormalizedViewPortRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 60
-  orthographic: 0
-  orthographic size: 5
-  m_Depth: -1
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 0
-  m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
-  m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
-  m_StereoConvergence: 10
-  m_StereoSeparation: 0.022
---- !u!4 &1224176780
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1224176776}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1, y: -1.7, z: -8}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1243714321
 GameObject:
   m_ObjectHideFlags: 0
@@ -4894,6 +4990,76 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5404176934485794286, guid: 9e4308c3e97d26a388364cbe0ea8bfb4, type: 3}
   m_PrefabInstance: {fileID: 1334974596}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1336144217
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1336144219}
+  - component: {fileID: 1336144218}
+  m_Layer: 0
+  m_Name: MIDI6 control
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1336144218
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336144217}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeInSeconds: 1.5
+  fadeOutSeconds: 1.2
+  volumeCC: 11
+  targetVolume: 110
+  maxRootStep: 5
+  registerLow: 50
+  registerHigh: 76
+  triadBias: 0.6
+  midiOutName: VMIDI6
+  channel: 0
+  baseNote: 60
+  consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
+  velocityRange: {x: 70, y: 110}
+  intervalRange: {x: 3.75, y: 10.75}
+  rate01: 0.5
+  intervalJitter: 0.1
+  transposeSemitones: 0
+  pitchBendRangeSemitones: 12
+  pitchBendNorm: 0
+  bendSlew: 0.8
+  timbre01: 0.5
+  timbreSlew: 0.85
+  ccCutoff: 74
+  ccResonance: 71
+  ccDistortion: 20
+  autoStart: 1
+--- !u!4 &1336144219
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336144217}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145538756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1341325524
 GameObject:
   m_ObjectHideFlags: 0
@@ -5627,6 +5793,76 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 2
+--- !u!1 &1424351754
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1424351755}
+  - component: {fileID: 1424351756}
+  m_Layer: 0
+  m_Name: MIDI7 control
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1424351755
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1424351754}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145538756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1424351756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1424351754}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeInSeconds: 1.5
+  fadeOutSeconds: 1.2
+  volumeCC: 11
+  targetVolume: 110
+  maxRootStep: 5
+  registerLow: 50
+  registerHigh: 76
+  triadBias: 0.6
+  midiOutName: VMIDI7
+  channel: 0
+  baseNote: 60
+  consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
+  velocityRange: {x: 70, y: 110}
+  intervalRange: {x: 3.75, y: 10.75}
+  rate01: 0.5
+  intervalJitter: 0.1
+  transposeSemitones: 0
+  pitchBendRangeSemitones: 12
+  pitchBendNorm: 0
+  bendSlew: 0.8
+  timbre01: 0.5
+  timbreSlew: 0.85
+  ccCutoff: 74
+  ccResonance: 71
+  ccDistortion: 20
+  autoStart: 1
 --- !u!1 &1437740983
 GameObject:
   m_ObjectHideFlags: 0
@@ -5807,6 +6043,76 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 768488256}
   m_SourcePrefab: {fileID: 100100000, guid: 26291658c810dac48b0e6ace2bc4ee41, type: 3}
+--- !u!1 &1595255633
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1595255634}
+  - component: {fileID: 1595255635}
+  m_Layer: 0
+  m_Name: MIDI4 control
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1595255634
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1595255633}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145538756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1595255635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1595255633}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeInSeconds: 1.5
+  fadeOutSeconds: 1.2
+  volumeCC: 11
+  targetVolume: 110
+  maxRootStep: 5
+  registerLow: 50
+  registerHigh: 76
+  triadBias: 0.6
+  midiOutName: VMIDI4
+  channel: 0
+  baseNote: 60
+  consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
+  velocityRange: {x: 70, y: 110}
+  intervalRange: {x: 3.75, y: 10.75}
+  rate01: 0.5
+  intervalJitter: 0.1
+  transposeSemitones: 0
+  pitchBendRangeSemitones: 12
+  pitchBendNorm: 0
+  bendSlew: 0.8
+  timbre01: 0.5
+  timbreSlew: 0.85
+  ccCutoff: 74
+  ccResonance: 71
+  ccDistortion: 20
+  autoStart: 1
 --- !u!1 &1625996802
 GameObject:
   m_ObjectHideFlags: 0
@@ -5845,125 +6151,6 @@ Transform:
   - {fileID: 1158763520}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1637557890
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1637557894}
-  - component: {fileID: 1637557893}
-  - component: {fileID: 1637557892}
-  - component: {fileID: 1637557891}
-  m_Layer: 0
-  m_Name: Main Camera (2)
-  m_TagString: MainCamera
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1637557891
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1637557890}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cf92e5dbec5f534090fae229fe4e6e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  zoomSpeed: 1
-  minZoom: 10
-  maxZoom: 80
-  panSpeed: 1
-  panLimit: 20
-  smoothTime: 0.3
-  zoomSensitivity: 10
-  panSensitivity: 15
-  minHandDistance: 0.1
-  maxHandDistance: 0.8
-  distanceChangeThreshold: 0.01
-  panChangeThreshold: 0.008
-  showDebugInfo: 1
-  showDetailedAnalysis: 0
---- !u!81 &1637557892
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1637557890}
-  m_Enabled: 1
---- !u!20 &1637557893
-Camera:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1637557890}
-  m_Enabled: 1
-  serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
-  m_projectionMatrixMode: 1
-  m_GateFitMode: 2
-  m_FOVAxisMode: 0
-  m_Iso: 200
-  m_ShutterSpeed: 0.005
-  m_Aperture: 16
-  m_FocusDistance: 10
-  m_FocalLength: 50
-  m_BladeCount: 5
-  m_Curvature: {x: 2, y: 11}
-  m_BarrelClipping: 0.25
-  m_Anamorphism: 0
-  m_SensorSize: {x: 36, y: 24}
-  m_LensShift: {x: 0, y: 0}
-  m_NormalizedViewPortRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 60
-  orthographic: 0
-  orthographic size: 5
-  m_Depth: -1
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 0
-  m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
-  m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
-  m_StereoConvergence: 10
-  m_StereoSeparation: 0.022
---- !u!4 &1637557894
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1637557890}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0.057831936, y: -0.62283564, z: -0.045135062, w: 0.7789057}
-  m_LocalPosition: {x: 36.5, y: -4, z: -32.7}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -8.413, y: -77.301, z: 0.1}
 --- !u!1 &1654345772
 GameObject:
   m_ObjectHideFlags: 0
@@ -6151,6 +6338,76 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39bac9dd52c31ae7aa01a7383bc44853, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1753195116
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1753195117}
+  - component: {fileID: 1753195118}
+  m_Layer: 0
+  m_Name: MIDI2 control
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1753195117
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1753195116}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145538756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1753195118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1753195116}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeInSeconds: 1.5
+  fadeOutSeconds: 1.2
+  volumeCC: 11
+  targetVolume: 110
+  maxRootStep: 5
+  registerLow: 50
+  registerHigh: 76
+  triadBias: 0.6
+  midiOutName: VMIDI2
+  channel: 0
+  baseNote: 60
+  consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
+  velocityRange: {x: 70, y: 110}
+  intervalRange: {x: 3.75, y: 10.75}
+  rate01: 0.5
+  intervalJitter: 0.1
+  transposeSemitones: 0
+  pitchBendRangeSemitones: 12
+  pitchBendNorm: 0
+  bendSlew: 0.8
+  timbre01: 0.5
+  timbreSlew: 0.85
+  ccCutoff: 74
+  ccResonance: 71
+  ccDistortion: 20
+  autoStart: 1
 --- !u!1 &1763318298
 GameObject:
   m_ObjectHideFlags: 0
@@ -7873,13 +8130,139 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!1 &2143343882
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2143343884}
+  - component: {fileID: 2143343883}
+  m_Layer: 0
+  m_Name: MIDIManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2143343883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2143343882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17775fbdfa71c1d4e82790c10e461337, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tracks:
+  - {fileID: 785550052}
+  - {fileID: 1753195118}
+  - {fileID: 267165909}
+  - {fileID: 1595255635}
+  - {fileID: 646201872}
+  - {fileID: 1336144218}
+  stageProfiles:
+  - displayName: Plane1
+    stage: 2
+    activeMask: 010000000000
+    globalTransposeSemis: 0
+    globalScales:
+      pitchScale: 0
+      timbreScale: 0
+      rateScale: 0
+  - displayName: Plane2
+    stage: 3
+    activeMask: 000100000000
+    globalTransposeSemis: 0
+    globalScales:
+      pitchScale: 0
+      timbreScale: 0
+      rateScale: 0
+  perTrackScales:
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  applyStageGlobalTranspose: 0
+  broadcastControlsToAllActive: 1
+  firstActiveOnly: 1
+--- !u!4 &2143343884
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2143343882}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -30.20163, y: 34.730377, z: 43.252323}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2145538755
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2145538756}
+  m_Layer: 0
+  m_Name: MIDI Group
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2145538756
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2145538755}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 785550051}
+  - {fileID: 1753195117}
+  - {fileID: 267165908}
+  - {fileID: 1595255634}
+  - {fileID: 646201871}
+  - {fileID: 1336144219}
+  - {fileID: 1424351755}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1264297881}
-  - {fileID: 1224176780}
-  - {fileID: 1637557894}
   - {fileID: 638479258}
   - {fileID: 1378752570}
   - {fileID: 1503562553}
@@ -7894,3 +8277,5 @@ SceneRoots:
   - {fileID: 974239146}
   - {fileID: 500405792}
   - {fileID: 1176770427}
+  - {fileID: 2145538756}
+  - {fileID: 2143343884}

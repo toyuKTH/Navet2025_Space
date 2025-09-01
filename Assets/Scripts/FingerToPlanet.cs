@@ -25,6 +25,9 @@ public class FingerOnPlanetGroupGlobal : MonoBehaviour
     public string triggerForTwo = "toPlane2"; // 2 指触发的 Trigger
     public string triggerForThree = "toPlane3"; // 3 指触发的 Trigger
 
+    [Header("MIDI 管理器（拖到这里）")]
+    public MIDIStageManager midiStageManager;
+
     private HolisticTrackingGraph graph;
     private Vector3[] lm = new Vector3[21];
     private bool gotFrame;
@@ -33,6 +36,16 @@ public class FingerOnPlanetGroupGlobal : MonoBehaviour
     private int currentCount;
 
     void Start() { StartCoroutine(Connect()); }
+
+    void Update()
+    {
+        //-------- for test -----------
+        // 可选：数字键 1/2/3/4/5 快捷切阶段
+        if (Input.GetKeyDown(KeyCode.Alpha1)) SetStagePlanet1();
+        if (Input.GetKeyDown(KeyCode.Alpha2)) SetStagePlanet2();
+        if (Input.GetKeyDown(KeyCode.Alpha3)) SetStagePlanet3();
+    }
+
 
     IEnumerator Connect()
     {
@@ -141,4 +154,33 @@ public class FingerOnPlanetGroupGlobal : MonoBehaviour
         }
         catch { return 0; }
     }
+
+    //---------------for test------------------
+
+    [ContextMenu("Stage ▶ Planet 1")]
+    public void SetStagePlanet1()
+    {
+        midiStageManager?.SetStage(MIDIStageManager.Stage.Planet1);
+        cameraAnimator?.SetTrigger(triggerForOne); // 需要可保留视觉联动
+        Debug.Log("[Test] Switch Stage: Planet1");
+    }
+
+    [ContextMenu("Stage ▶ Planet 2")]
+    public void SetStagePlanet2()
+    {
+        midiStageManager?.SetStage(MIDIStageManager.Stage.Planet2);
+        cameraAnimator?.SetTrigger(triggerForTwo);
+        Debug.Log("[Test] Switch Stage: Planet2");
+    }
+
+    [ContextMenu("Stage ▶ Planet 3")]
+    public void SetStagePlanet3()
+    {
+        midiStageManager?.SetStage(MIDIStageManager.Stage.Planet3);
+        cameraAnimator?.SetTrigger(triggerForThree);
+        Debug.Log("[Test] Switch Stage: Planet3");
+    }
+
+
+
 }
