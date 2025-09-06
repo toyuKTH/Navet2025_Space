@@ -21,9 +21,9 @@ public class SonificationMelody : MonoBehaviour
     // ===== 和声风格（更“稳”的ambient）=====
     private int lastRootMidi = int.MinValue;
     [SerializeField] int maxRootStep = 5;     // 相邻和弦根音最大跳进（半音）
-    [SerializeField] int registerLow = 50;   // 下限
+    [SerializeField] int registerLow = 50;    // 下限
     [SerializeField] int registerHigh = 76;   // 上限
-    [SerializeField] float triadBias = 0.6f; // 三和弦概率
+    [SerializeField] float triadBias = 0.6f;  // Auto 模式下三和弦概率
 
     [Header("MIDI Output")]
     [Tooltip("留空=自动选第一个输出设备；或填 loopMIDI/IAC 的精确名称")]
@@ -37,6 +37,19 @@ public class SonificationMelody : MonoBehaviour
     public int[] consonantIntervals = new int[] { 0, 3, 4, 5, 7, 9, 12 };
     [Tooltip("力度范围")]
     public Vector2Int velocityRange = new Vector2Int(70, 110);
+
+    // === 新增：触发形态（单音/二声/三声/自动） ===
+    public enum VoicingMode { Single, Dyad, Triad, Auto }
+
+    [Header("Voicing 触发形态")]
+    public VoicingMode voicing = VoicingMode.Auto;
+
+    [Tooltip("Dyad（二声音）时可用的音程（相对根音）")]
+    public int[] dyadIntervals = new int[] { 3, 4, 7, 9 }; // m3, M3, P5, M6
+
+    public enum TriadKind { Random, Minor, Major }
+    [Tooltip("Triad（三和弦）时第三音的类型；Random=在小三/大三之间随机")]
+    public TriadKind triadKind = TriadKind.Random;
 
     [Header("Rate (触发频率)")]
     [Tooltip("最小/最大触发间隔（秒）")]
@@ -64,8 +77,26 @@ public class SonificationMelody : MonoBehaviour
     [Tooltip("滤波截止 CC（通常 74）/ 共振 CC（通常 71）/ 失真 CC（自行 MIDI Learn）")]
     public int ccCutoff = 74, ccResonance = 71, ccDistortion = 20;
 
+    // === Knob LFO via MIDI CC ===
+    [Header("Knob LFO via MIDI CC")]
+    [Tooltip("勾选后：持续发送一个正弦LFO到指定CC，用来摇动宿主里的旋钮/宏")]
+    public bool enableKnobLfo = false;
+
+    [Tooltip("发送到哪个CC号（在宿主里用这个CC去MIDI Learn 目标旋钮）")]
+    public int ccKnob = 23;                 // 选一个你没占用的CC
+
+    [Tooltip("LFO幅度（0..1）。1=全幅(0..127)，0.2=窄幅(≈[0.4..0.6])")]
+    [Range(0f, 1f)] public float knobSwing01 = 1.0f;
+
+    [Tooltip("LFO频率(Hz)，0.3≈每秒摇0.3次")]
+    [Range(0.01f, 2f)] public float knobLfoHz = 0.3f;
+
+    [Tooltip("中心位置（0..1）。0.5=居中；改它可偏移中心")]
+    [Range(0f, 1f)] public float knobCenter01 = 0.5f;
+
     [Header("Runtime")]
     public bool autoStart = true;
+
 
     // ===== 内部 =====
     private OutputDevice outDev;
@@ -74,6 +105,8 @@ public class SonificationMelody : MonoBehaviour
     private float smoothedBend = 0f;
     private int currentVolume = 0; // 记住最近一次发送的音量CC
     private readonly List<int> currentlyOnNotes = new List<int>();
+    // runtime
+    float _knobLfoPhase = 0f;
 
     // ---------- 生命周期 ----------
     void Awake()
@@ -163,27 +196,27 @@ public class SonificationMelody : MonoBehaviour
             float jitter = 1f + Random.Range(-intervalJitter, intervalJitter);
             float interval = Mathf.Max(0.08f, baseInterval * jitter);
 
-            // 2) 选根音（小步进行 + 限定音域），构建“和谐的双音/三音”
+            // 2) 选根音（小步进行 + 限定音域），构建单音或和弦
             int root = ChooseNextRoot();
-            var chordNotes = BuildChord(root);
+            var notes = BuildVoicing(root); // <== 替代原来的 BuildChord
 
             // 3) 力度与音长（更连奏：70%~95% 的占空比）
             int vel = Random.Range(velocityRange.x, velocityRange.y + 1);
             float dur = Mathf.Clamp(interval * Random.Range(0.70f, 0.95f), 0.05f, 4f);
 
             // 4) 发音
-            for (int i = 0; i < chordNotes.Count; i++)
+            for (int i = 0; i < notes.Count; i++)
             {
-                SendNoteOn(chordNotes[i], vel);
-                currentlyOnNotes.Add(chordNotes[i]);
+                SendNoteOn(notes[i], vel);
+                currentlyOnNotes.Add(notes[i]);
             }
 
             yield return new WaitForSeconds(dur);
 
-            for (int i = 0; i < chordNotes.Count; i++)
+            for (int i = 0; i < notes.Count; i++)
             {
-                SendNoteOff(chordNotes[i]);
-                currentlyOnNotes.Remove(chordNotes[i]);
+                SendNoteOff(notes[i]);
+                currentlyOnNotes.Remove(notes[i]);
             }
 
             // 5) 留一点空隙
@@ -214,6 +247,21 @@ public class SonificationMelody : MonoBehaviour
             yield return wait;
         }
         ctrlCo = null;
+
+        // —— 发送Knob LFO（正弦 + 可控幅度/中心/频率）——
+        if (enableKnobLfo)
+        {
+            _knobLfoPhase += 2f * Mathf.PI * knobLfoHz * Time.deltaTime;
+            if (_knobLfoPhase > 2f * Mathf.PI) _knobLfoPhase -= 2f * Mathf.PI;
+
+            float sinv = Mathf.Sin(_knobLfoPhase);    // [-1, +1]
+                                                      // 把 [-1,+1] 映射到 [center - swing*0.5, center + swing*0.5] 再裁到 [0,1]
+            float out01 = Mathf.Clamp01(knobCenter01 + sinv * 0.5f * Mathf.Clamp01(knobSwing01));
+
+            int ccVal = Mathf.RoundToInt(out01 * 127f);  // 0..127
+            SendCC(ccKnob, ccVal);
+        }
+
     }
 
     // ---------- 发送事件 ----------
@@ -265,34 +313,53 @@ public class SonificationMelody : MonoBehaviour
         return candidate;
     }
 
-    List<int> BuildChord(int root)
+    // === 新版：根据 voicing 构建单音/二声/三声 ===
+    List<int> BuildVoicing(int root)
     {
+        // 确保根音在音域内
+        root = Mathf.Clamp(root, registerLow, registerHigh);
+
+        // 决定触发形态
+        VoicingMode mode = voicing;
+        if (mode == VoicingMode.Auto)
+            mode = (Random.value < triadBias) ? VoicingMode.Triad : VoicingMode.Dyad;
+
         var notes = new List<int> { root };
 
-        bool makeTriad = Random.value < triadBias; // 约60%为三和弦
-        if (makeTriad)
+        if (mode == VoicingMode.Single)
         {
-            int third = (Random.value < 0.5f) ? 3 : 4; // m3 / M3
-            notes.Add(root + third);
-            notes.Add(root + 7); // P5
-
-            int max = Mathf.Max(notes[0], notes[1], notes[2]);
-            int min = Mathf.Min(notes[0], notes[1], notes[2]);
-            if (max > registerHigh) { for (int i = 0; i < notes.Count; i++) notes[i] -= 12; }
-            if (min < registerLow) { for (int i = 0; i < notes.Count; i++) notes[i] += 12; }
+            return notes; // 只有根音
         }
-        else
+        else if (mode == VoicingMode.Dyad)
         {
-            int[] dyads = new int[] { 3, 4, 7, 9 }; // m3, M3, P5, M6
-            int iv = dyads[Random.Range(0, dyads.Length)];
+            if (dyadIntervals == null || dyadIntervals.Length == 0) dyadIntervals = new int[] { 3, 4, 7, 9 };
+            int iv = dyadIntervals[Random.Range(0, dyadIntervals.Length)];
             notes.Add(root + iv);
 
+            // 限定到音域
             int max = Mathf.Max(notes[0], notes[1]);
             int min = Mathf.Min(notes[0], notes[1]);
             if (max > registerHigh) { notes[0] -= 12; notes[1] -= 12; }
             if (min < registerLow) { notes[0] += 12; notes[1] += 12; }
+            return notes;
         }
-        return notes;
+        else // Triad
+        {
+            int third =
+                triadKind == TriadKind.Minor ? 3 :
+                triadKind == TriadKind.Major ? 4 :
+                (Random.value < 0.5f ? 3 : 4);
+
+            notes.Add(root + third);
+            notes.Add(root + 7); // 完全五度
+
+            // 限定到音域
+            int max = Mathf.Max(notes[0], notes[1], notes[2]);
+            int min = Mathf.Min(notes[0], notes[1], notes[2]);
+            if (max > registerHigh) { for (int i = 0; i < notes.Count; i++) notes[i] -= 12; }
+            if (min < registerLow) { for (int i = 0; i < notes.Count; i++) notes[i] += 12; }
+            return notes;
+        }
     }
 
     // ---------- 淡入淡出 & 安全停止 ----------
@@ -336,7 +403,7 @@ public class SonificationMelody : MonoBehaviour
         currentVolume = 0;
 
         // 停掉音符/协程
-        StopMelody(); // 会AllNotesOff
+        StopMelody(); // 会 AllNotesOff
         fadeCo = null;
     }
 
@@ -345,7 +412,7 @@ public class SonificationMelody : MonoBehaviour
         // CC123: All Notes Off, CC120: All Sound Off（有的合成器支持）
         SendCC(123, 0);
         SendCC(120, 0);
-        // 保险关音：把还在记录里的音符逐个NoteOff
+        // 保险关音：把还在记录里的音符逐个 NoteOff
         for (int i = 0; i < currentlyOnNotes.Count; i++)
             SendNoteOff(currentlyOnNotes[i]);
         currentlyOnNotes.Clear();

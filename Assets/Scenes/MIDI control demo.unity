@@ -122,6 +122,145 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &502112775
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 502112778}
+  - component: {fileID: 502112776}
+  m_Layer: 0
+  m_Name: control manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &502112776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502112775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17775fbdfa71c1d4e82790c10e461337, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tracks:
+  - {fileID: 1622293202}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  stageProfiles:
+  - displayName: 
+    stage: 0
+    activeMask: 01000000
+    globalTransposeSemis: 0
+    globalScales:
+      pitchScale: 0
+      timbreScale: 0
+      rateScale: 0
+  perTrackScales:
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  - pitchScale: 1
+    timbreScale: 1
+    rateScale: 1
+  applyStageGlobalTranspose: 0
+  broadcastControlsToAllActive: 1
+  firstActiveOnly: 1
+--- !u!4 &502112778
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502112775}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -30.20163, y: 34.730377, z: 43.252323}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1124451899
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1124451901}
+  - component: {fileID: 1124451900}
+  m_Layer: 0
+  m_Name: stage Manger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1124451900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1124451899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40a16630466e47f4ea2db81ddb80cbf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  manager: {fileID: 502112776}
+  activeTrackIndex: 0
+  listenSecondsIntro: 3
+  listenSecondsMuted: 2
+  testPitch01: 0.55
+  testTimbre01: 0.65
+  testRate01: 0.95
+  liveFromInspector: 1
+  liveSendHz: 30
+  changeThreshold: 0.002
+  liveTranspose: 0
+  transposeSemis: 0
+  keepPlaying: 1
+--- !u!4 &1124451901
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1124451899}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -30.20163, y: 34.730377, z: 43.252323}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1281784819
 GameObject:
   m_ObjectHideFlags: 0
@@ -429,15 +568,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fadeInSeconds: 1.5
+  fadeOutSeconds: 1.2
+  volumeCC: 11
+  targetVolume: 110
+  maxRootStep: 5
+  registerLow: 50
+  registerHigh: 76
+  triadBias: 0.6
   midiOutName: VMIDI1
   channel: 0
   baseNote: 60
-  consonantIntervals: 0000000003000000040000000500000007000000090000000c000000
-  octaveRange: 1
+  consonantIntervals: 0200000005000000090000000b0000000e000000
   velocityRange: {x: 70, y: 110}
-  noteLengthRange: {x: 0.15, y: 0.35}
-  intervalRange: {x: 0.25, y: 0.8}
-  rate01: 0.5
+  voicing: 1
+  dyadIntervals: 0000000004000000070000000c000000
+  triadKind: 2
+  intervalRange: {x: 1.5, y: 4}
+  rate01: 0.057
   intervalJitter: 0.1
   transposeSemitones: 0
   pitchBendRangeSemitones: 12
@@ -448,6 +596,11 @@ MonoBehaviour:
   ccCutoff: 31
   ccResonance: 39
   ccDistortion: 20
+  enableKnobLfo: 1
+  ccKnob: 10
+  knobSwing01: 1
+  knobLfoHz: 0.3
+  knobCenter01: 0.5
   autoStart: 1
 --- !u!4 &1622293203
 Transform:
@@ -473,3 +626,5 @@ SceneRoots:
   - {fileID: 1376436594}
   - {fileID: 1281784821}
   - {fileID: 1622293203}
+  - {fileID: 502112778}
+  - {fileID: 1124451901}
