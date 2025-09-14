@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ac3f291598e9774bafb14e6ebdeee08, type: 3}
   m_Name: New Rock Storm Config
   m_EditorClassIdentifier: 
-  spawnRate: 6
-  spawnShell: 1
-  initialSpeed: {x: 8, y: 12}
-  spread: 0.6
-  homingAccel: 5
+  spawnRate: 3
+  spawnShell: 0.2
+  initialSpeed: {x: 12, y: 8}
+  spread: 0.2
+  homingAccel: 20
   maxLifetime: 10
   prewarm: 20

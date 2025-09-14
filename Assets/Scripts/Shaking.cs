@@ -44,6 +44,9 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
     //rock生成器
     public RockStormSpawner storm;
 
+    //tree生成器
+    public TreeSpawnerOnSphere trees;
+
     // 内部
     private Vector3[] leftHandLandmarks = new Vector3[21];
     private Vector3[] rightHandLandmarks = new Vector3[21];
@@ -71,6 +74,25 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
     public void EnterStorm() { storm.Activate(true); }
     public void ExitStorm() { storm.Activate(false); }
 
+    //tree状态控制
+
+    public void EnterGrowState()
+    {
+        trees.BeginGrow();                      // 缓慢地一棵棵长
+    }
+
+    public void EnterDisappearState()
+    {
+        trees.BeginDisappear();                 // 开始逐棵缓慢消失
+        trees.OnAllCleared += OnTreesCleared;   // 也可轮询 trees.AllCleared
+    }
+    void OnTreesCleared()
+    {
+        // 全部消失后要做的事（切下一个阶段等）
+        trees.OnAllCleared -= OnTreesCleared;
+    }
+
+
     IEnumerator ConnectToHandDetection()
     {
         yield return new WaitForSeconds(1.2f);
@@ -96,6 +118,20 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
                 stageManager.TriggerNote(60, 100, 0.25f);
                 Log("按下 T：发送 controls + C4");
             }
+        }
+
+        //键盘测试：按G长树
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            trees.BeginGrow();
+            Debug.Log("BeginGrow()");
+        }
+
+        //键盘测试：按D开始树消失
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            trees.BeginDisappear();
+            Debug.Log("BeginDisappear()");
         }
 
         DoIdleBreathing();
@@ -158,10 +194,17 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
                 //触发陨石飞出
                 EnterStorm();
 
+                //测试用触发长树
+                trees.BeginGrow();
+
             }
             else Log("触发但 stageManager 未连接。");
         }
-        else { ExitStorm(); }
+        else 
+        { 
+            ExitStorm();
+        }
+
     }
 
     private IEnumerator DoPulseAndShake(float strength)
