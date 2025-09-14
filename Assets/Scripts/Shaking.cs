@@ -41,6 +41,9 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
     [Header("调试显示")]
     public bool showOnGUI = true;
 
+    //rock生成器
+    public RockStormSpawner storm;
+
     // 内部
     private Vector3[] leftHandLandmarks = new Vector3[21];
     private Vector3[] rightHandLandmarks = new Vector3[21];
@@ -61,7 +64,12 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
 
         if (stageManager == null) Log("提示：stageManager 未连接（不会发声）");
         StartCoroutine(ConnectToHandDetection());
+
+        
     }
+    //rock状态控制
+    public void EnterStorm() { storm.Activate(true); }
+    public void ExitStorm() { storm.Activate(false); }
 
     IEnumerator ConnectToHandDetection()
     {
@@ -146,9 +154,14 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
 
                 stageManager.TriggerNote(note, vel, dur);
                 Log($"触发！Δ={delta:0.0000} strength={strength:0.00} → note={note} vel={vel} dur={dur:0.00}");
+
+                //触发陨石飞出
+                EnterStorm();
+
             }
             else Log("触发但 stageManager 未连接。");
         }
+        else { ExitStorm(); }
     }
 
     private IEnumerator DoPulseAndShake(float strength)
