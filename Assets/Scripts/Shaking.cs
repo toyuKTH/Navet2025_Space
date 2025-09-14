@@ -103,17 +103,18 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
             }
         }
 
-        // === 替换：用健康总控 ===
+        //键盘测试：地球健康程度变化
+        if (Input.GetKeyDown(KeyCode.D))
+        {         // 变坏：（如果有树）树清空→地球变坏
+            if (world) world.GoDepleted();
+            Log("GoDepleted()");
+        }
         if (Input.GetKeyDown(KeyCode.G))
         {         // 变好：树清空→地球恢复→再种树
             if (world) world.GoHealthy();
             Log("GoHealthy()");
         }
-        if (Input.GetKeyDown(KeyCode.D))
-        {         // 变坏：树清空→地球变坏（不种树）
-            if (world) world.GoDepleted();
-            Log("GoDepleted()");
-        }
+
 
         DoIdleBreathing();
 
