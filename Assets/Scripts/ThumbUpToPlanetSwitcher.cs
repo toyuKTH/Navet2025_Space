@@ -94,7 +94,7 @@ public class ThumbUpToPlanetSwitcher : MonoBehaviour
         hasTriggered = true;
 
         // 调用 PanelSwitcher
-        /*        PanelSwitcher switcher = FindObjectOfType<PanelSwitcher>();
+                PanelSwitcher switcher = FindObjectOfType<PanelSwitcher>();
                 if (switcher != null)
                 {
                     switcher.SwitchPanel(welcomePanel, targetPanel);
@@ -103,10 +103,10 @@ public class ThumbUpToPlanetSwitcher : MonoBehaviour
                 {
                     // 没有管理器就直接切
                     welcomePanel.SetActive(false);
-                    //targetPanel.SetActive(true);
+                    targetPanel.SetActive(true);
 
 
-                }*/
+                }
         welcomePanel.SetActive(false);
         //触发动画
         cameraAnimator.SetTrigger("toSelection");

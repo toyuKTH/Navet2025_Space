@@ -1,247 +1,289 @@
 using System;
 using System.Collections;
 using UnityEngine;
-
 using Mediapipe;
 using Mediapipe.Unity;
 using Mediapipe.Unity.Sample.Holistic;
-using Rect = UnityEngine.Rect;
+using Rect = UnityEngine.Rect;   // 避免 Mediapipe.Rect / UnityEngine.Rect 歧义
 
-public class HandDistanceShakeAndPulse : MonoBehaviour
+public class Shaking : MonoBehaviour
 {
-    [Header("Debug")]
-    public bool debugLogs = true;
-    void Log(string m) { if (debugLogs) Debug.Log($"[EarthShaking:{name}] {m}"); }
-
-    [Header("Mediapipe Holistic（放在名为“Solution”的对象上最稳）")]
+    [Header("Holistic（不填会自动找名为 Solution 的对象）")]
     public HolisticTrackingSolution holistic;
 
-    [Header("Sound Hook")]
-    public MIDIStageManager stageManager;
-
-    [Header("视觉目标")]
+    [Header("要缩放的目标（为空则缩放自己）")]
     public Transform target;
 
-    [Header("触发判定")]
-    public float distanceChangeThreshold = 0.015f;
-    public float retriggerDelay = 0.60f;
-    [Range(0f, 1f)] public float distanceSmoothing = 0.20f;
+    [Header("缩放映射（输入=双手距离 0..1）")]
+    public float scaleMin = 0.6f;
+    public float scaleMax = 1.4f;
 
-    [Header("视觉：idle 呼吸")]
-    public bool enableIdleBreathing = true;
-    public float breathingAmplitude = 0.03f;
-    public float breathingSpeedHz = 0.12f;
+    [Header("平滑/同步")]
+    [Range(0f, 0.99f)] public float distanceSmoothing = 0.85f; // 越大越平滑
+    [Tooltip("左右手数据时间差最大容忍（秒），超过则认为不同步不计算")]
+    public float dataMaxAge = 0.25f;
+    [Tooltip("true=用掌心（腕+食指根平均），false=用手腕")]
+    public bool usePalmCenter = true;
 
-    [Header("视觉：触发脉冲 & 抖动")]
-    public float pulseScale = 1.12f;
-    public float pulseDuration = 0.18f;
-    public float shakeIntensity = 0.08f;
-    public float shakeDuration = 0.12f;
-
-    [Header("调试显示")]
-    public bool showOnGUI = true;
-
-    // ==== 仅保留：陨石风暴 ====
+    [Header("Storm（简单：超过阈值则开，带滞回）")]
     public RockStormSpawner storm;
+    [Range(0f, 1f)] public float stormOnThreshold = 0.35f;   // t 超过此值打开
+    [Range(0f, 1f)] public float stormOffThreshold = 0.30f;  // t 低于此值关闭（避免抖动）
 
-    // ==== 新增：世界健康总控（替代 trees + earth） ====
-    [Header("World Health")]
-    public WorldHealthCoordinator world;           // 拖你创建的 WorldHealthCoordinator
+    [Header("MIDI（最小：把 t 作为 timbre01 连续输出）")]
+    public MIDIStageManager stageManager;
+    public bool sendContinuousToMIDI = true;
+    [Range(0f, 1f)] public float midiPitch01 = 0.5f;
+    [Range(0f, 1f)] public float midiRate01  = 0.5f;
 
-    // 可选：手势触发时是否自动切换健康状态
-    public bool changeWorldOnTrigger = false;      // 默认关：只用键盘/UI 控
-    public bool depleteOnTrigger = true;           // 手势触发时变坏？false=变好
+    [Header("调试")]
+    public bool debugGUI = true;
+    public bool verboseLogs = true;
+    public float summaryLogInterval = 1.0f;
+    public KeyCode snapshotKey = KeyCode.L;
 
-    // 内部
-    private Vector3[] leftHandLandmarks = new Vector3[21];
-    private Vector3[] rightHandLandmarks = new Vector3[21];
-    private bool hasLeftHandData = false, hasRightHandData = false;
+    // ===== 回调线程写 / 主线程读 =====
+    private readonly Vector3[] leftLms  = new Vector3[21];
+    private readonly Vector3[] rightLms = new Vector3[21];
+    private readonly object leftLock  = new object();
+    private readonly object rightLock = new object();
+    private volatile bool leftValid  = false;
+    private volatile bool rightValid = false;
+    private volatile bool leftNew    = false;
+    private volatile bool rightNew   = false;
 
-    private float _prevFiltered = -1f, _filtered = -1f, _lastTriggerTime = -999f;
-    private Vector3 _baseScale, _basePos;
-    private float _breathPhase;
-    private Coroutine _pulseRoutine;
+    // 主线程时间戳
+    private float leftTime  = -999f;
+    private float rightTime = -999f;
 
+    // 计算状态
+    private float filteredDist = -1f;   // 平滑后的距离
+    private Vector3 baseScale;
+
+    // 调试/状态
+    private float nextSummaryAt = 0f;
+    private string lastEarlyExit = "";
+    private bool stormOn = false;
+
+    // 手部关键点索引
     const int WRIST = 0;
     const int INDEX_MCP = 5;
 
+    void Log(string s) { if (verboseLogs) Debug.Log("[Shaking] " + s); }
+
     void Start()
     {
-        if (target == null) target = transform;
-        _baseScale = target.localScale; _basePos = target.position;
+        if (!target) target = transform;
+        baseScale = target.localScale;
 
-        if (stageManager == null) Log("提示：stageManager 未连接（不会发声）");
-        StartCoroutine(ConnectToHandDetection());
+        StartCoroutine(Connect());
+        StartCoroutine(Watchdog());
     }
 
-    // rock 状态控制（保留）
-    public void EnterStorm() { if (storm) storm.Activate(true); }
-    public void ExitStorm() { if (storm) storm.Activate(false); }
-
-    IEnumerator ConnectToHandDetection()
+    IEnumerator Connect()
     {
+        // 等 Mediapipe 起
         yield return new WaitForSeconds(1.2f);
-        if (holistic == null)
+
+        if (!holistic)
         {
-            var solution = GameObject.Find("Solution");
-            if (solution != null) holistic = solution.GetComponent<HolisticTrackingSolution>();
+            var go = GameObject.Find("Solution");
+            if (go) holistic = go.GetComponent<HolisticTrackingSolution>();
+            Log(go ? "已找到 'Solution' 并获取 Holistic" : "未找到 'Solution'");
         }
-        if (holistic == null) { Log("未找到 HolisticTrackingSolution；仅保留 idle 呼吸。"); yield break; }
-        TryRegisterCallbacks(holistic);
+        if (!holistic)
+        {
+            Log("❌ 未获取到 HolisticTrackingSolution，无法接收手数据");
+            yield break;
+        }
+
+        TryRegister(holistic);
     }
 
+    void TryRegister(HolisticTrackingSolution h)
+    {
+        try
+        {
+            var t = h.GetType();
+            HolisticTrackingGraph g = null;
+
+            var field = t.GetField("graphRunner",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null) g = field.GetValue(h) as HolisticTrackingGraph;
+
+            if (g == null)
+            {
+                var prop = t.GetProperty("graphRunner",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (prop != null) g = prop.GetValue(h) as HolisticTrackingGraph;
+            }
+
+            if (g == null) { Log("❌ 拿不到 graphRunner（可能包版本接口不同）"); return; }
+
+            g.OnLeftHandLandmarksOutput  += OnLeft;
+            g.OnRightHandLandmarksOutput += OnRight;
+            Log("✅ 已注册左右手 landmark 回调");
+        }
+        catch (Exception e) { Debug.LogException(e); }
+    }
+
+    // ============== 回调线程：只缓存数据，不用 Time.* ==============
+    void OnLeft(object stream, OutputStream<NormalizedLandmarkList>.OutputEventArgs e)
+    {
+        var list = e.packet?.Get(NormalizedLandmarkList.Parser);
+        if (list == null || list.Landmark.Count < 21) { leftValid = false; return; }
+
+        lock (leftLock)
+        {
+            for (int i = 0; i < 21; i++)
+            {
+                var lm = list.Landmark[i];
+                leftLms[i] = new Vector3(lm.X, lm.Y, lm.Z);
+            }
+            leftValid = true;
+            leftNew   = true;
+        }
+    }
+
+    void OnRight(object stream, OutputStream<NormalizedLandmarkList>.OutputEventArgs e)
+    {
+        var list = e.packet?.Get(NormalizedLandmarkList.Parser);
+        if (list == null || list.Landmark.Count < 21) { rightValid = false; return; }
+
+        lock (rightLock)
+        {
+            for (int i = 0; i < 21; i++)
+            {
+                var lm = list.Landmark[i];
+                rightLms[i] = new Vector3(lm.X, lm.Y, lm.Z);
+            }
+            rightValid = true;
+            rightNew   = true;
+        }
+    }
+
+    // ============== 主线程：打时间戳 + 计算缩放 + Storm/MIDI ==============
     void Update()
     {
-        // 键盘测试：按 T 发一次控制 & 音符（保留）
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Input.GetKeyDown(snapshotKey)) DumpSnapshot("手动快照");
+
+        if (leftNew)  { leftTime  = Time.time; leftNew  = false; }
+        if (rightNew) { rightTime = Time.time; rightNew = false; }
+
+        if (!(leftValid && rightValid))
         {
-            if (stageManager != null)
-            {
-                stageManager.ApplyControls(0.5f, 1f, 0.5f);
-                stageManager.TriggerNote(60, 100, 0.25f);
-                Log("按下 T：发送 controls + C4");
-            }
+            EarlyExit("没有同时拿到左右手有效数据");
+            MaybeStormOff();
+            return;
         }
 
-        //键盘测试：地球健康程度变化
-        if (Input.GetKeyDown(KeyCode.D))
-        {         // 变坏：（如果有树）树清空→地球变坏
-            if (world) world.GoDepleted();
-            Log("GoDepleted()");
-        }
-        if (Input.GetKeyDown(KeyCode.G))
-        {         // 变好：树清空→地球恢复→再种树
-            if (world) world.GoHealthy();
-            Log("GoHealthy()");
+        float dt = Mathf.Abs(leftTime - rightTime);
+        if (dt > dataMaxAge)
+        {
+            EarlyExit($"左右手时间差过大 Δt={dt:0.000}s > {dataMaxAge:0.000}s");
+            MaybeStormOff();
+            return;
         }
 
+        // —— 复制 landmark 到临时变量后计算 —— 
+        Vector3 lp, rp;
+        lock (leftLock)  lp = PalmPoint(leftLms);
+        lock (rightLock) rp = PalmPoint(rightLms);
 
-        DoIdleBreathing();
+        // 用 xy 归一化坐标算欧氏距离
+        float raw = Vector2.Distance(new Vector2(lp.x, lp.y), new Vector2(rp.x, rp.y));
 
-        if (hasLeftHandData && hasRightHandData)
-            AnalyzeAndMaybeTrigger();
-    }
-
-    private void DoIdleBreathing()
-    {
-        if (!enableIdleBreathing || target == null) return;
-        _breathPhase += Time.deltaTime * (Mathf.PI * 2f * Mathf.Max(0f, breathingSpeedHz));
-        float k = Mathf.Sin(_breathPhase) * breathingAmplitude;
-        target.localScale = _baseScale * (1f + k);
-    }
-
-    private void AnalyzeAndMaybeTrigger()
-    {
-        Vector3 lp = ExtractPalm(leftHandLandmarks);
-        Vector3 rp = ExtractPalm(rightHandLandmarks);
-        float rawDistance = Vector2.Distance(new Vector2(lp.x, lp.y), new Vector2(rp.x, rp.y));
-
-        if (_filtered < 0f) { _filtered = rawDistance; _prevFiltered = rawDistance; }
+        // 低通
+        if (filteredDist < 0f) filteredDist = raw;
         else
         {
-            _prevFiltered = _filtered;
-            float a = Mathf.Clamp01(1f - distanceSmoothing);
-            _filtered = Mathf.Lerp(_filtered, rawDistance, a);
+            float a = 1f - Mathf.Clamp01(distanceSmoothing);
+            filteredDist = Mathf.Lerp(filteredDist, raw, a);
         }
 
-        float delta = Mathf.Abs(_filtered - _prevFiltered);
-        float now = Time.time;
+        // 距离→0..1（按你的镜头需要调整这两个阈值）
+        float t = Mathf.Clamp01(Mathf.InverseLerp(0.05f, 0.45f, filteredDist));
 
-        if (delta > distanceChangeThreshold && (now - _lastTriggerTime) >= retriggerDelay)
+        // ===== 视觉：缩放 =====
+        float s = Mathf.Lerp(scaleMin, scaleMax, t);
+        target.localScale = baseScale * s;
+
+        // ===== Storm：简单阈值 + 滞回 =====
+        if (storm)
         {
-            _lastTriggerTime = now;
+            if (!stormOn && t >= stormOnThreshold) { storm.Activate(true); stormOn = true; }
+            else if (stormOn && t <= stormOffThreshold) { storm.Activate(false); stormOn = false; }
+        }
 
-            float strength = Mathf.Clamp01(delta * 8f);
+        // ===== MIDI：把 t 连续发给 timbre01（最简）=====
+        if (stageManager && sendContinuousToMIDI)
+        {
+            stageManager.ApplyControls(midiPitch01, t, midiRate01);
+        }
 
-            if (_pulseRoutine != null) StopCoroutine(_pulseRoutine);
-            _pulseRoutine = StartCoroutine(DoPulseAndShake(strength));
+        // 汇总日志
+        if (Time.time >= nextSummaryAt)
+        {
+            nextSummaryAt = Time.time + Mathf.Max(0.1f, summaryLogInterval);
+            Log($"UPD: raw={raw:0.000} filtered={filteredDist:0.000} t={t:0.00} scale={s:0.00} Δt={dt:0.000}s storm={(stormOn?"ON":"OFF")}");
+        }
 
-            if (stageManager != null)
+        lastEarlyExit = "";
+    }
+
+    // ============== 工具/调试 ==============
+    void MaybeStormOff()
+    {
+        if (storm && stormOn) { storm.Activate(false); stormOn = false; }
+    }
+
+    void EarlyExit(string reason)
+    {
+        if (reason != lastEarlyExit) Log("早退：" + reason);
+        lastEarlyExit = reason;
+    }
+
+    Vector3 PalmPoint(Vector3[] lms)
+    {
+        if (!usePalmCenter) return lms[WRIST];
+        return (lms[WRIST] + lms[INDEX_MCP]) * 0.5f;
+    }
+
+    IEnumerator Watchdog()
+    {
+        float lastAny = Time.time;
+        while (true)
+        {
+            if (leftValid || rightValid) lastAny = Time.time;
+            if (Time.time - lastAny > 2f)
             {
-                float pitch01 = 0.5f;
-                float timbre01 = strength;
-                float rate01 = 0.5f;
-                stageManager.ApplyControls(pitch01, timbre01, rate01);
-
-                int baseNote = 60; // C4
-                int note = Mathf.Clamp(baseNote + Mathf.RoundToInt(strength * 12f), 0, 127);
-                int vel = Mathf.Clamp(Mathf.RoundToInt(Mathf.Lerp(80f, 120f, strength)), 1, 127);
-                float dur = Mathf.Lerp(0.18f, 0.35f, 1f - strength);
-                stageManager.TriggerNote(note, vel, dur);
-
-                // 陨石风暴
-                EnterStorm();
-
-                // —— 可选：手势触发就切世界健康状态 ——
-                if (world && changeWorldOnTrigger)
-                {
-                    if (depleteOnTrigger) world.GoDepleted();
-                    else world.GoHealthy();
-                }
+                Log("⚠️ 2s 内没有手数据 —— 检查摄像头/光照/画面内是否有双手");
+                lastAny = Time.time;
             }
-            else Log("触发但 stageManager 未连接。");
-        }
-        else
-        {
-            ExitStorm();
+            yield return new WaitForSeconds(1f);
         }
     }
 
-    private IEnumerator DoPulseAndShake(float strength)
+    void DumpSnapshot(string tag)
     {
-        if (target == null) yield break;
+        Vector3 lp, rp;
+        lock (leftLock)  lp = PalmPoint(leftLms);
+        lock (rightLock) rp = PalmPoint(rightLms);
 
-        float upT = pulseDuration * 0.45f;
-        float dnT = pulseDuration * 0.55f;
-
-        Vector3 startScale = target.localScale;
-        Vector3 big = _baseScale * Mathf.Lerp(1f, pulseScale, strength);
-
-        float t = 0f;
-        while (t < upT) { t += Time.deltaTime; target.localScale = Vector3.Lerp(startScale, big, t / upT); yield return null; }
-        t = 0f;
-        while (t < dnT) { t += Time.deltaTime; target.localScale = Vector3.Lerp(big, _baseScale, t / dnT); yield return null; }
-        target.localScale = _baseScale;
-
-        float sd = shakeDuration * strength;
-        float si = shakeIntensity * strength;
-        Vector3 orig = _basePos;
-        t = 0f;
-        while (t < sd)
-        {
-            t += Time.deltaTime;
-            Vector3 off = new Vector3(
-                UnityEngine.Random.Range(-si, si),
-                UnityEngine.Random.Range(-si, si),
-                UnityEngine.Random.Range(-si, si) * 0.15f);
-            target.position = orig + off;
-            yield return null;
-        }
-        target.position = orig;
-
-        _pulseRoutine = null;
+        float dt = Mathf.Abs(leftTime - rightTime);
+        Log($"[{tag}] leftValid={leftValid} tL={leftTime:0.000}  rightValid={rightValid} tR={rightTime:0.000}  Δt={dt:0.000}  " +
+            $"L=({lp.x:0.000},{lp.y:0.000}) R=({rp.x:0.000},{rp.y:0.000}) filtered={filteredDist:0.000} storm={stormOn}");
     }
-
-    private Vector3 ExtractPalm(Vector3[] lms)
-    {
-        Vector3 p = lms[WRIST];
-        if (p == Vector3.zero) p = lms[INDEX_MCP];
-        return p;
-    }
-
-    // —— Mediapipe 回调注册/接收（原样保留） ——
-    private void TryRegisterCallbacks(HolisticTrackingSolution holisticSolution) { /* ...保持你原来的实现... */ }
-    private void OnLeftHandLandmarksReceived(object stream, OutputStream<NormalizedLandmarkList>.OutputEventArgs e) { /* ... */ }
-    private void OnRightHandLandmarksReceived(object stream, OutputStream<NormalizedLandmarkList>.OutputEventArgs e) { /* ... */ }
 
     void OnGUI()
     {
-        if (!showOnGUI) return;
-        GUILayout.BeginArea(new Rect(10, 10, 560, 160), GUI.skin.box);
-        GUILayout.Label("EarthShaking · Visual + MIDI Trigger (health-controlled)");
-        GUILayout.Label($"Hands: L {(hasLeftHandData ? "✓" : "✗")}  R {(hasRightHandData ? "✓" : "✗")}");
-        GUILayout.Label($"Dist(filtered): {_filtered:0.0000}   Δ: {Mathf.Abs(_filtered - _prevFiltered):0.0000}");
-        GUILayout.Label($"Threshold: {distanceChangeThreshold:0.0000}   Cooldown: {retriggerDelay:0.00}s");
+        if (!debugGUI) return;
+        GUILayout.BeginArea(new Rect(10, 10, 520, 170), GUI.skin.box);
+        GUILayout.Label("Shaking · 双手距离 → 缩放（含 Storm/MIDI）  (按 L 打快照)");
+        GUILayout.Label($"leftValid={leftValid} tL={leftTime:0.00} | rightValid={rightValid} tR={rightTime:0.00}");
+        GUILayout.Label($"Δt={Mathf.Abs(leftTime - rightTime):0.000}s  (max {dataMaxAge:0.000}s)");
+        GUILayout.Label($"dist(filtered)={filteredDist:0.000}  smoothing={distanceSmoothing:0.00}");
+        GUILayout.Label($"scale=[{scaleMin:0.00}..{scaleMax:0.00}]  storm={(stormOn ? "ON" : "OFF")}");
         GUILayout.EndArea();
     }
 }

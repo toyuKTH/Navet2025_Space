@@ -841,7 +841,9 @@ MonoBehaviour:
   shakeDuration: 0.12
   showOnGUI: 0
   storm: {fileID: 0}
-  trees: {fileID: 0}
+  world: {fileID: 0}
+  changeWorldOnTrigger: 0
+  depleteOnTrigger: 1
 --- !u!1 &160797197
 GameObject:
   m_ObjectHideFlags: 0
@@ -2978,7 +2980,9 @@ MonoBehaviour:
   shakeDuration: 0.12
   showOnGUI: 1
   storm: {fileID: 0}
-  trees: {fileID: 0}
+  world: {fileID: 0}
+  changeWorldOnTrigger: 0
+  depleteOnTrigger: 1
 --- !u!114 &501599203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5940,7 +5944,9 @@ MonoBehaviour:
   shakeDuration: 0.12
   showOnGUI: 1
   storm: {fileID: 0}
-  trees: {fileID: 0}
+  world: {fileID: 0}
+  changeWorldOnTrigger: 0
+  depleteOnTrigger: 1
 --- !u!114 &944735037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7727,7 +7733,9 @@ MonoBehaviour:
   shakeDuration: 0.12
   showOnGUI: 0
   storm: {fileID: 0}
-  trees: {fileID: 0}
+  world: {fileID: 0}
+  changeWorldOnTrigger: 0
+  depleteOnTrigger: 1
 --- !u!1 &1158763519
 GameObject:
   m_ObjectHideFlags: 0
@@ -10367,7 +10375,9 @@ MonoBehaviour:
   shakeDuration: 0.12
   showOnGUI: 0
   storm: {fileID: 0}
-  trees: {fileID: 0}
+  world: {fileID: 0}
+  changeWorldOnTrigger: 0
+  depleteOnTrigger: 1
 --- !u!1001 &1487504803
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10843,7 +10853,9 @@ MonoBehaviour:
   shakeDuration: 0.12
   showOnGUI: 0
   storm: {fileID: 1868417576}
-  trees: {fileID: 1186483395}
+  world: {fileID: 0}
+  changeWorldOnTrigger: 0
+  depleteOnTrigger: 1
 --- !u!1 &1552287941
 GameObject:
   m_ObjectHideFlags: 0
@@ -11060,7 +11072,7 @@ GameObject:
   - component: {fileID: 1576526710}
   - component: {fileID: 1576526709}
   m_Layer: 5
-  m_Name: MarsPanel
+  m_Name: MarsPanel111
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14104,7 +14116,9 @@ MonoBehaviour:
   shakeDuration: 0.12
   showOnGUI: 1
   storm: {fileID: 0}
-  trees: {fileID: 0}
+  world: {fileID: 0}
+  changeWorldOnTrigger: 0
+  depleteOnTrigger: 1
 --- !u!1 &2134221390
 GameObject:
   m_ObjectHideFlags: 0
