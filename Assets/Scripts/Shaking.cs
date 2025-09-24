@@ -52,6 +52,8 @@ public class HandDistanceShakeAndPulse : MonoBehaviour
     // ============================
     [Header("🎵 Local MIDI / 本面板音轨")]
     public SonificationMelody[] tracks = new SonificationMelody[3];
+    public GenerativeAmbientMidi ambient; // 拖入 Planet1Panel/AmbientGenerator 上的生成器
+
 
     [Tooltip("面板激活时是否启用本面板配置的轨道（将对应 SonificationMelody.enabled = true）")]
     public bool enableTracksOnActivate = true;

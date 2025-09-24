@@ -91,6 +91,25 @@ public class SonificationMelody : MonoBehaviour
         try { AllNotesOff(); outDev?.Dispose(); } catch { }
     }
 
+    // 外部控制生成ambient music↓
+    public void SetMasterGain01(float v01, float fadeSeconds = 0.08f)
+    {
+        v01 = Mathf.Clamp01(v01);
+        int tgt = Mathf.RoundToInt(v01 * 127f);
+        targetVolume = tgt;
+        if (fadeCo != null) StopCoroutine(fadeCo);
+        fadeCo = StartCoroutine(FadeVolumeTo(targetVolume, Mathf.Max(0.001f, fadeSeconds)));
+    }
+
+    public void SetExpression01(float v01)
+    {
+        // CC11，一些音源用它做“细音量”
+        int val = Mathf.RoundToInt(Mathf.Clamp01(v01) * 127f);
+        SendCC(11, val);
+    }
+
+
+
     // ===== 连续控制（PB/CC） =====
     IEnumerator ContinuousControllers()
     {
