@@ -34,8 +34,9 @@ public class Shaking : MonoBehaviour
     public float stormHoldTime = 0.6f;
     public RockStormSpawner storm;
 
-    [Header("MIDI")]
-    public MIDIStageManager stageManager;     // 连续控制走这里
+    // ====== 原 HEAD 的 MIDI：StageManager 连续控制 + 单条 Melody 打音 ======
+    [Header("MIDI（StageManager 连续控制 + 单条 Melody 打音）")]
+    public MIDIStageManager stageManager;     // 连续控制
     public bool sendContinuousToMIDI = true;
     [Range(0f, 1f)] public float midiPitch01 = 0.5f;
     [Range(0f, 1f)] public float midiRate01  = 0.5f;
@@ -49,6 +50,28 @@ public class Shaking : MonoBehaviour
     [Tooltip("触发 Note 的变化阈值（可与 stormChangeThreshold 相同或略小）")]
     public float noteChangeThreshold = 0.02f;
 
+    // ====== 可选扩展：本地多轨 + Ambient 生成器（不配置则完全不影响原逻辑） ======
+    [Header("🎵 可选：本地多轨 + Ambient 生成器")]
+    public SonificationMelody[] tracks;                 // 本面板内需要被控制/打音的多条轨
+    public GenerativeAmbientMidi ambient;               // 面板内的 AmbientGenerator
+    [Tooltip("面板激活时是否启用本面板轨道（SonificationMelody.enabled = true）")]
+    public bool enableTracksOnActivate = true;
+    [Tooltip("离开面板时是否禁用这些轨道")]
+    public bool disableTracksOnDeactivate = true;
+    [Tooltip("（可选）仅在第一次“Δ触发”时再打开轨道")]
+    public bool openTracksOnFirstTriggerOnly = false;
+
+    [Header("可选：本地多轨缩放（叠加）")]
+    [Range(0, 2)] public float localPitchScale = 1f;
+    [Range(0, 2)] public float localTimbreScale = 1f;
+    [Range(0, 2)] public float localRateScale = 1f;
+
+    [Serializable]
+    public struct TrackScale { [Range(0, 2)] public float pitch; [Range(0, 2)] public float timbre; [Range(0, 2)] public float rate; }
+    public TrackScale[] perTrackScales = Array.Empty<TrackScale>();
+    public int localTransposeSemis = 0;
+
+    // ===== 调试 =====
     [Header("调试")]
     public bool debugGUI = true;
     public bool verboseLogs = true;
@@ -80,6 +103,7 @@ public class Shaking : MonoBehaviour
     private float lastDistanceForNote = -1f;  // Note 触发比较
     private float nextSummaryAt = 0f;
     private string lastEarlyExit = "";
+    private bool _tracksOpenedOnce = false;
 
     // 手部关键点索引
     const int WRIST = 0;
@@ -87,13 +111,42 @@ public class Shaking : MonoBehaviour
 
     void Log(string s) { if (verboseLogs) Debug.Log("[Shaking] " + s); }
 
+    // ================= 生命周期 =================
     void Start()
     {
         if (!target) target = transform;
         baseScale = target.localScale;
 
+        // 可选：修正 perTrackScales 长度
+        EnsurePerTrackScales();
+
         StartCoroutine(Connect());
         StartCoroutine(Watchdog());
+    }
+
+    void OnEnable()
+    {
+        _tracksOpenedOnce = false;
+        // 仅当配置了 tracks 时才动作；不影响原逻辑
+        if (enableTracksOnActivate && tracks != null && tracks.Length > 0 && !openTracksOnFirstTriggerOnly)
+            SetTracksEnabled(true);
+    }
+
+    void OnDisable()
+    {
+        if (disableTracksOnDeactivate && tracks != null && tracks.Length > 0)
+            SetTracksEnabled(false);
+    }
+
+    void EnsurePerTrackScales()
+    {
+        if (tracks == null) return;
+        if (perTrackScales == null || perTrackScales.Length != tracks.Length)
+        {
+            var arr = new TrackScale[Mathf.Max(1, tracks.Length)];
+            for (int i = 0; i < arr.Length; i++) { arr[i].pitch = 1f; arr[i].timbre = 1f; arr[i].rate = 1f; }
+            perTrackScales = arr;
+        }
     }
 
     IEnumerator Connect()
@@ -222,7 +275,7 @@ public class Shaking : MonoBehaviour
 
         // ===== 视觉：缩放 =====
         float s = Mathf.Lerp(scaleMin, scaleMax, t);
-        target.localScale = baseScale * s;
+        if (target) target.localScale = baseScale * s;
 
         // ===== Storm：仅当变化量超过阈值时触发一次，维持 holdTime 后自动关闭 =====
         float delta = Mathf.Abs(filteredDist - prevFilteredDist);
@@ -234,19 +287,50 @@ public class Shaking : MonoBehaviour
             stormHoldCo = StartCoroutine(StormAutoOff(stormHoldTime));
         }
 
-        // ===== MIDI：连续控制 走 MIDIStageManager.ApplyControls(...) =====
+        // ===== 原逻辑：MIDIStageManager 连续控制 =====
         if (stageManager && sendContinuousToMIDI)
         {
             stageManager.ApplyControls(midiPitch01, t, midiRate01);
         }
 
-        // ===== MIDI：变化超过阈值触发一个 Note（可选）=====
+        // ===== 原逻辑：变化超过阈值触发一个 Note（可选）=====
         if (midiMelody && triggerNoteOnChange && lastDistanceForNote > 0f && Mathf.Abs(filteredDist - lastDistanceForNote) > noteChangeThreshold)
         {
             int note = Mathf.Clamp(Mathf.RoundToInt(baseNote + t * noteRange), baseNote, baseNote + noteRange);
             midiMelody.PlayNote(note, 100, noteDuration);
         }
         lastDistanceForNote = filteredDist;
+
+        // ===== 可选扩展：把 t/Δ 同步给本地多轨 + Ambient =====
+        if (tracks != null && tracks.Length > 0)
+        {
+            // 首次“Δ触发”时才打开轨（可选）
+            if (openTracksOnFirstTriggerOnly && !_tracksOpenedOnce && delta > stormChangeThreshold)
+            {
+                SetTracksEnabled(true);
+                _tracksOpenedOnce = true;
+            }
+
+            // 把 t 当作 timbre（0..1），Δ 当作强度的瞬时映射
+            float pitch01 = 0.5f;
+            float timbre01 = t;
+            float rate01 = 0.5f;
+
+            ApplyControlsLocal(pitch01, timbre01, rate01);
+            // 若你也希望本地多轨在“Δ触发”时打一记音：
+            if (delta > noteChangeThreshold)
+            {
+                int n = Mathf.Clamp(baseNote + localTransposeSemis + Mathf.RoundToInt(t * noteRange), 0, 127);
+                TriggerNoteLocal(n, 100, noteDuration);
+            }
+        }
+
+        if (ambient != null)
+        {
+            // 手势强度 → 背景响度；速率 → 背景节奏倍率
+            ambient.SetVolume01(t);
+            ambient.SetTempoMultiplier(0.5f + 1.5f * midiRate01);
+        }
 
         // 汇总日志
         if (Time.time >= nextSummaryAt)
@@ -258,7 +342,7 @@ public class Shaking : MonoBehaviour
         lastEarlyExit = "";
     }
 
-    // ============== 工具/调试 ==============
+    // ================= 工具/调试 =================
     IEnumerator StormAutoOff(float sec)
     {
         yield return new WaitForSeconds(Mathf.Max(0f, sec));
@@ -274,7 +358,7 @@ public class Shaking : MonoBehaviour
             storm.Activate(false);                      // 关风暴
             if (stormHoldCo != null) { StopCoroutine(stormHoldCo); stormHoldCo = null; }
         }
-        // MIDI：此处不发任何控制/音符（保持静默）
+        // 保持 MIDI 静默（不发送控制）
     }
 
     void EarlyExit(string reason)
@@ -318,11 +402,61 @@ public class Shaking : MonoBehaviour
     void OnGUI()
     {
         if (!debugGUI) return;
-        GUILayout.BeginArea(new Rect(10, 10, 540, 170), GUI.skin.box);
-        GUILayout.Label("Shaking · 双手距离 → 缩放 + Storm(Δ阈值触发) + MIDI");
+        GUILayout.BeginArea(new Rect(10, 10, 560, 180), GUI.skin.box);
+        GUILayout.Label("Shaking · 双手距离 → 缩放 + Storm(Δ触发) + MIDI(Stage) + 可选本地多轨/Ambient");
         GUILayout.Label($"leftValid={leftValid} tL={leftTime:0.00} | rightValid={rightValid} tR={rightTime:0.00}  (max Δt={dataMaxAge:0.000}s)");
         GUILayout.Label($"dist(filtered)={filteredDist:0.000}  Δ={Mathf.Abs(filteredDist - prevFilteredDist):0.000}  " +
                         $"stormTh={stormChangeThreshold:0.000}  retrig={stormRetriggerDelay:0.00}s  hold={stormHoldTime:0.00}s");
         GUILayout.EndArea();
+    }
+
+    // -------------- 可选：本地多轨实现（不配置则不生效） --------------
+    void SetTracksEnabled(bool on)
+    {
+        foreach (var t in tracks)
+        {
+            if (t == null) continue;
+            t.enabled = on; // 触发 SonificationMelody.OnEnable/OnDisable（会淡入/淡出）
+        }
+    }
+
+    void ApplyControlsLocal(float pitch01, float timbre01, float rate01)
+    {
+        if (tracks == null || tracks.Length == 0) return;
+
+        pitch01 = Mathf.Clamp01(pitch01) * Mathf.Max(0f, localPitchScale);
+        timbre01 = Mathf.Clamp01(timbre01) * Mathf.Max(0f, localTimbreScale);
+        rate01 = Mathf.Clamp01(rate01) * Mathf.Max(0f, localRateScale);
+
+        for (int i = 0; i < tracks.Length; i++)
+        {
+            var t = tracks[i];
+            if (t == null || !t.isActiveAndEnabled) continue;
+
+            float p = pitch01, tm = timbre01, r = rate01;
+            if (perTrackScales != null && i < perTrackScales.Length)
+            {
+                p *= Mathf.Max(0f, perTrackScales[i].pitch);
+                tm *= Mathf.Max(0f, perTrackScales[i].timbre);
+                r *= Mathf.Max(0f, perTrackScales[i].rate);
+            }
+
+            t.ApplyControls(Mathf.Clamp01(p), Mathf.Clamp01(tm), Mathf.Clamp01(r));
+        }
+    }
+
+    void TriggerNoteLocal(int note, int velocity = 100, float duration = 0.25f)
+    {
+        if (tracks == null || tracks.Length == 0) return;
+
+        int n = Mathf.Clamp(note + localTransposeSemis, 0, 127);
+        int vel = Mathf.Clamp(velocity, 1, 127);
+        float dur = Mathf.Max(0.01f, duration);
+
+        foreach (var t in tracks)
+        {
+            if (t == null || !t.isActiveAndEnabled) continue;
+            t.PlayNote(n, vel, dur);
+        }
     }
 }
