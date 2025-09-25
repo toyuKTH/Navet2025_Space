@@ -7,17 +7,17 @@ using Random = UnityEngine.Random;
 
 public class TreeSpawnerOnSphere : MonoBehaviour
 {
-    [Header("ÒýÓÃ")]
+    [Header("ï¿½ï¿½ï¿½ï¿½")]
     public Transform earth;
     public Collider earthCollider;      // SphereCollider/MeshCollider
     public TreePool pool;
 
-    [Header("½Ú×à")]
-    public float spawnInterval = 0.5f;      // Éú³¤½Ú×à£¨Ô½´óÔ½Âý£©
-    public float disappearInterval = 0.2f;  // ÏûÊ§½Ú×à£¨Öð¿ÃÒÀ´ÎÏûÊ§£¬0=Í¬Ê±£©
+    [Header("ï¿½ï¿½ï¿½ï¿½")]
+    public float spawnInterval = 0.5f;      // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à£¨Ô½ï¿½ï¿½Ô½ï¿½ï¿½ï¿½ï¿½
+    public float disappearInterval = 0.2f;  // ï¿½ï¿½Ê§ï¿½ï¿½ï¿½à£¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½0=Í¬Ê±ï¿½ï¿½
     public float sizeMultiplier = 0.25f;
 
-    [Header("·ÅÖÃ")]
+    [Header("ï¿½ï¿½ï¿½ï¿½")]
     public float surfaceOffset = 0.02f;
     public float minSurfaceSpacing = 0.8f;
     public float sphereRadius = 5f;
@@ -28,14 +28,14 @@ public class TreeSpawnerOnSphere : MonoBehaviour
     public Phase CurrentPhase { get; private set; } = Phase.Idle;
 
 
-    public bool AllCleared { get; private set; } = true;  // ÊÇ·ñÒÑÈ«²¿ÏûÊ§
-    public event Action OnAllCleared;                     // È«²¿ÏûÊ§»Øµ÷
+    public bool AllCleared { get; private set; } = true;  // ï¿½Ç·ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½ï¿½Ê§
+    public event Action OnAllCleared;                     // È«ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Øµï¿½
 
     class Active { public TreeGrower g; public Vector3 pos; public Vector3 normal; }
     readonly List<Active> actives = new List<Active>();
     Coroutine growLoop;
 
-    // ¡ª¡ª Íâ²¿µ÷ÓÃ ¡ª¡ª
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½â²¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     public void BeginGrow()
     {
         if (CurrentPhase == Phase.Growing) return;
@@ -53,7 +53,7 @@ public class TreeSpawnerOnSphere : MonoBehaviour
         StartCoroutine(DisappearSequential());
     }
 
-    // ¡ª¡ª Éú³¤½×¶Î ¡ª¡ª
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½×¶ï¿½ ï¿½ï¿½ï¿½ï¿½
     IEnumerator GrowLoop()
     {
         var wait = new WaitForSeconds(spawnInterval);
@@ -74,10 +74,10 @@ public class TreeSpawnerOnSphere : MonoBehaviour
             if (!IsFarEnough(pos)) continue;
 
             var g = pool.GetRandom();
-            // ÕâÀï²åÈë ¡ý¡ý¡ý
-            g.gameObject.isStatic = false; // ·ÀÖ¹¾²Ì¬ºÏÅúÀÓÓ¡£¨ÖØÒª£©
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            g.gameObject.isStatic = false; // ï¿½ï¿½Ö¹ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½
             g.transform.SetParent(earth, worldPositionStays: false);
-            foreach (var r in g.GetComponentsInChildren<Renderer>(true)) r.enabled = true; // ±£Ö¤ÆôÓÃ
+            foreach (var r in g.GetComponentsInChildren<Renderer>(true)) r.enabled = true; // ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½
 
             g.transform.position = pos;
             Quaternion align = Quaternion.FromToRotation(Vector3.up, normal);
@@ -86,7 +86,7 @@ public class TreeSpawnerOnSphere : MonoBehaviour
 
             float s = sizeMultiplier * Random.Range(randomScale.x, randomScale.y);
             g.SetSizeMultiplier(s);
-            g.Appear();                          // ÂýÂý³¤³öÀ´
+            g.Appear();                          // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
             a = new Active { g = g, pos = pos, normal = normal };
             return true;
@@ -94,10 +94,10 @@ public class TreeSpawnerOnSphere : MonoBehaviour
         return false;
     }
 
-    // ¡ª¡ª ÏûÊ§½×¶Î ¡ª¡ª
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ê§ï¿½×¶ï¿½ ï¿½ï¿½ï¿½ï¿½
     IEnumerator DisappearSequential()
     {
-        // ÓÃ¿ìÕÕËø¶¨Òª´¦ÀíµÄ¶ÔÏó£¬±éÀú¹ý³ÌÖÐ actives ¿É°²È«±»ÐÞ¸Ä
+        // ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Ä¶ï¿½ï¿½ó£¬±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ actives ï¿½É°ï¿½È«ï¿½ï¿½ï¿½Þ¸ï¿½
         var snapshot = actives.ToArray();
         int remaining = snapshot.Length;
 
@@ -105,10 +105,10 @@ public class TreeSpawnerOnSphere : MonoBehaviour
 
         void onHidden(TreeGrower tg)
         {
-            tg.OnFullyHidden -= onHidden;         // È¡Ïû¶©ÔÄ£¬±ÜÃâ³Ø»¯ºó²ÐÁô¶©ÔÄ
+            tg.OnFullyHidden -= onHidden;         // È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½Ø»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             tg.ReturnToPool();
 
-            // ´Ó»î¶¯ÁÐ±íÒÆ³ý¶ÔÓ¦Ïî
+            // ï¿½Ó»î¶¯ï¿½Ð±ï¿½ï¿½Æ³ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½
             actives.RemoveAll(a => a.g == tg);
 
             if (--remaining == 0)
@@ -119,11 +119,11 @@ public class TreeSpawnerOnSphere : MonoBehaviour
         {
             var g = snapshot[i].g;
 
-            // ÏÈ¶©ÔÄ£¬ÔÙ´¥·¢£¬±ÜÃâ¼«¶Ì¶¯»­/Á¢¼´Íê³É¶ªÊÂ¼þ
+            // ï¿½È¶ï¿½ï¿½Ä£ï¿½ï¿½Ù´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â¼«ï¿½Ì¶ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¶ï¿½ï¿½Â¼ï¿½
             g.OnFullyHidden += onHidden;
 
-            // ÈôÕâ¿ÃÊ÷ÒÑ¾­ÊÇÒþ²Ø×´Ì¬£¨¼«¶ËÇé¿öÏÂ£©£¬Ö±½Ó×ß»Øµ÷Â·¾¶
-            // Èç¹ûÄãµÄ TreeGrower Ã»ÓÐ IsFullyHidden£¬¿É»»³É£ºif (g.transform.localScale == Vector3.zero)
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ß»Øµï¿½Â·ï¿½ï¿½
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ TreeGrower Ã»ï¿½ï¿½ IsFullyHiddenï¿½ï¿½ï¿½É»ï¿½ï¿½É£ï¿½if (g.transform.localScale == Vector3.zero)
             if (g.IsFullyHidden)
             {
                 onHidden(g);
@@ -137,7 +137,7 @@ public class TreeSpawnerOnSphere : MonoBehaviour
                 yield return new WaitForSeconds(disappearInterval);
         }
 
-        // ÕâÀï²»ÔÙÖ±½Ó FinishClear£»µÈ´ý onHidden °Ñ remaining ¼õµ½ 0 ÔÙÊÕÎ²
+        // ï¿½ï¿½ï¿½ï²»ï¿½ï¿½Ö±ï¿½ï¿½ FinishClearï¿½ï¿½ï¿½È´ï¿½ onHidden ï¿½ï¿½ remaining ï¿½ï¿½ï¿½ï¿½ 0 ï¿½ï¿½ï¿½ï¿½Î²
     }
 
 
@@ -153,7 +153,7 @@ public class TreeSpawnerOnSphere : MonoBehaviour
         if (growLoop != null) { StopCoroutine(growLoop); growLoop = null; }
         CurrentPhase = Phase.Idle;
 
-        // Õæ¡¤É±¹â£ºÏú»Ù Earth ÏÂËùÓÐ TreeGrower
+        // ï¿½æ¡¤É±ï¿½â£ºï¿½ï¿½ï¿½ï¿½ Earth ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ TreeGrower
         var trees = earth.GetComponentsInChildren<TreeGrower>(true);
         foreach (var t in trees)
         {
@@ -165,7 +165,7 @@ public class TreeSpawnerOnSphere : MonoBehaviour
         OnAllCleared?.Invoke();
     }
 
-    // ¡ª¡ª ÇòÃæ¹¤¾ß ¡ª¡ª£¨ÓëÖ®Ç°Ò»ÖÂ£©
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½æ¹¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®Ç°Ò»ï¿½Â£ï¿½
     bool GetSurface(Vector3 dir, out Vector3 pos, out Vector3 normal)
     {
         if (earthCollider)

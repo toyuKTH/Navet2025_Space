@@ -890,16 +890,23 @@ MonoBehaviour:
   target: {fileID: 148333946}
   scaleMin: 0.6
   scaleMax: 1.4
-  distanceSmoothing: 0.2
+  distanceSmoothing: 0.85
   dataMaxAge: 0.25
   usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
   storm: {fileID: 0}
-  stormOnThreshold: 0.35
-  stormOffThreshold: 0.3
-  stageManager: {fileID: 2143343883}
+  stageManager: {fileID: 0}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   debugGUI: 1
   verboseLogs: 1
   summaryLogInterval: 1
@@ -1598,6 +1605,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 298505179}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &343595904 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 113194, guid: bbd167bc0adbc1e4687062041c1d592a, type: 3}
+  m_PrefabInstance: {fileID: 1314245722}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &346214197
 GameObject:
   m_ObjectHideFlags: 0
@@ -1916,7 +1928,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 566911861}
   m_SourcePrefab: {fileID: 100100000, guid: 8186fbba21e8a684287d265866f01822, type: 3}
 --- !u!4 &386579558 stripped
 Transform:
@@ -2451,7 +2466,6 @@ GameObject:
   - component: {fileID: 500405791}
   - component: {fileID: 500405793}
   - component: {fileID: 500405794}
-  - component: {fileID: 500405795}
   m_Layer: 0
   m_Name: GestureRouter
   m_TagString: Untagged
@@ -2466,14 +2480,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 500405790}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 94f0b9c9fe7ef1548add0da0f77b25d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   holistic: {fileID: 275874969}
   welcomePanel: {fileID: 973125975}
-  targetPanel: {fileID: 1576526708}
+  targetPanel: {fileID: 1738199426}
   gestureHoldTime: 2
   requiredStableFrames: 3
   cameraAnimator: {fileID: 0}
@@ -2526,7 +2540,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mediaTracker: {fileID: 275874969}
   panelController: {fileID: 538391958}
-  mainPlanetPanel: {fileID: 282644195}
+  mainPlanetPanel: {fileID: 973125975}
   activePanels:
   - {fileID: 0}
   - {fileID: 1243714321}
@@ -2539,38 +2553,6 @@ MonoBehaviour:
   gestureHoldDuration: 1
   requiredStableFrames: 3
   cooldownSeconds: 3
---- !u!114 &500405795
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 500405790}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2cef43ccba89b674b80784cb62341196, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mediaTracker: {fileID: 275874969}
-  panelController: {fileID: 538391958}
-  mainPlanetPanel: {fileID: 282644195}
-  cameraAnimator: {fileID: 1264297884}
-  soundPlayer: {fileID: 0}
-  oneFingerTargetPanel: {fileID: 0}
-  oneFingerTriggerName: toPlane1
-  oneFingerSound: {fileID: 0}
-  oneFingerDelay: 3.5
-  twoFingerTargetPanel: {fileID: 1243714321}
-  twoFingerTriggerName: toPlane2
-  twoFingerSound: {fileID: 0}
-  twoFingerDelay: 3
-  threeFingerTargetPanel: {fileID: 1962726114}
-  threeFingerTriggerName: toPlane3
-  threeFingerSound: {fileID: 0}
-  threeFingerDelay: 3
-  gestureHoldDuration: 0.5
-  minStableFrameCount: 2
-  fingerDetectionThreshold: 0.05
 --- !u!1 &501599197 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 26291658c810dac48b0e6ace2bc4ee41, type: 3}
@@ -2661,16 +2643,23 @@ MonoBehaviour:
   target: {fileID: 0}
   scaleMin: 0.6
   scaleMax: 1.4
-  distanceSmoothing: 0.672
+  distanceSmoothing: 0.85
   dataMaxAge: 0.25
   usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
   storm: {fileID: 0}
-  stormOnThreshold: 0.35
-  stormOffThreshold: 0.3
   stageManager: {fileID: 0}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   debugGUI: 1
   verboseLogs: 1
   summaryLogInterval: 1
@@ -2972,6 +2961,25 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4023271387163692, guid: b69eb9385aa8e024cbe81191b632953b, type: 3}
   m_PrefabInstance: {fileID: 557729160}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &566911857 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+  m_PrefabInstance: {fileID: 386579557}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &566911861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 566911857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e51d7dbdcd18d72418cf7b9d614a6f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  axis: {x: 0, y: 1, z: 0}
+  speed: 2
 --- !u!1 &588926207
 GameObject:
   m_ObjectHideFlags: 0
@@ -4958,16 +4966,23 @@ MonoBehaviour:
   target: {fileID: 0}
   scaleMin: 0.6
   scaleMax: 1.4
-  distanceSmoothing: 0.672
+  distanceSmoothing: 0.85
   dataMaxAge: 0.25
   usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
   storm: {fileID: 0}
-  stormOnThreshold: 0.35
-  stormOffThreshold: 0.3
   stageManager: {fileID: 0}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   debugGUI: 1
   verboseLogs: 1
   summaryLogInterval: 1
@@ -5296,6 +5311,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
       insertIndex: -1
       addedObject: {fileID: 965354696}
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 965354700}
   m_SourcePrefab: {fileID: 100100000, guid: 8186fbba21e8a684287d265866f01822, type: 3}
 --- !u!1 &965354694 stripped
 GameObject:
@@ -5328,6 +5346,27 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.408
   m_Center: {x: 0.00000020861626, y: 0.000000029802322, z: 0.000000029802322}
+--- !u!114 &965354700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 965354694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b64f7707d1fabe4cbcea4d794255f2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holistic: {fileID: 275874969}
+  spawner: {fileID: 257846714}
+  burstDuration: 3.67
+  retriggerDelay: 1.2
+  lockDuringPhase: 1
+  holdTime: 2
+  soloHandMinTime: 0.25
+  debugGUI: 0
+  verboseLogs: 1
 --- !u!1 &969541648
 GameObject:
   m_ObjectHideFlags: 0
@@ -5990,9 +6029,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 153248, guid: 035306f61d30cec478039fb39067be1e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1051255176}
-    - targetCorrespondingSourceObject: {fileID: 153248, guid: 035306f61d30cec478039fb39067be1e, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1051255180}
   m_SourcePrefab: {fileID: 100100000, guid: 035306f61d30cec478039fb39067be1e, type: 3}
 --- !u!4 &1051255169 stripped
 Transform:
@@ -6020,16 +6056,23 @@ MonoBehaviour:
   target: {fileID: 1051255169}
   scaleMin: 0.6
   scaleMax: 1.4
-  distanceSmoothing: 0.2
+  distanceSmoothing: 0.85
   dataMaxAge: 0.25
   usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
   storm: {fileID: 537379310}
-  stormOnThreshold: 0.35
-  stormOffThreshold: 0.3
   stageManager: {fileID: 2143343883}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
+  midiMelody: {fileID: 785550052}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   debugGUI: 1
   verboseLogs: 1
   summaryLogInterval: 1
@@ -6048,31 +6091,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 5
---- !u!114 &1051255180
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1051255170}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3785753ab79b2cb4abdc9944ba5f4ce3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  holistic: {fileID: 275874969}
-  target: {fileID: 1051255169}
-  scaleMin: 0.6
-  scaleMax: 1.4
-  distanceSmoothing: 0.85
-  dataMaxAge: 0.25
-  usePalmCenter: 1
-  debugGUI: 1
-  verboseLogs: 1
-  logEachCallback: 0
-  logEveryNCallbacks: 10
-  summaryLogInterval: 1
-  snapshotKey: 108
 --- !u!1001 &1051267631
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6672,6 +6690,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 153248, guid: 035306f61d30cec478039fb39067be1e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1145809172}
+    - targetCorrespondingSourceObject: {fileID: 153248, guid: 035306f61d30cec478039fb39067be1e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1145809176}
   m_SourcePrefab: {fileID: 100100000, guid: 035306f61d30cec478039fb39067be1e, type: 3}
 --- !u!4 &1145809162 stripped
 Transform:
@@ -6690,7 +6711,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1145809163}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3785753ab79b2cb4abdc9944ba5f4ce3, type: 3}
   m_Name: 
@@ -6708,6 +6729,20 @@ MonoBehaviour:
   logEveryNCallbacks: 10
   summaryLogInterval: 1
   snapshotKey: 108
+--- !u!114 &1145809176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1145809163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e51d7dbdcd18d72418cf7b9d614a6f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  axis: {x: 0, y: 1, z: 0}
+  speed: 3
 --- !u!1 &1158763519
 GameObject:
   m_ObjectHideFlags: 0
@@ -7330,13 +7365,30 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 113194, guid: bbd167bc0adbc1e4687062041c1d592a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1314245727}
   m_SourcePrefab: {fileID: 100100000, guid: bbd167bc0adbc1e4687062041c1d592a, type: 3}
 --- !u!4 &1314245723 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 474474, guid: bbd167bc0adbc1e4687062041c1d592a, type: 3}
   m_PrefabInstance: {fileID: 1314245722}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1314245727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343595904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e51d7dbdcd18d72418cf7b9d614a6f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  axis: {x: 0, y: 1, z: 0}
+  speed: 2
 --- !u!1001 &1320742443
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9254,16 +9306,23 @@ MonoBehaviour:
   target: {fileID: 1474640449}
   scaleMin: 0.6
   scaleMax: 1.4
-  distanceSmoothing: 0.2
+  distanceSmoothing: 0.85
   dataMaxAge: 0.25
   usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
   storm: {fileID: 0}
-  stormOnThreshold: 0.35
-  stormOffThreshold: 0.3
-  stageManager: {fileID: 2143343883}
+  stageManager: {fileID: 0}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   debugGUI: 1
   verboseLogs: 1
   summaryLogInterval: 1
@@ -9784,16 +9843,23 @@ MonoBehaviour:
   target: {fileID: 1549477483}
   scaleMin: 0.6
   scaleMax: 1.4
-  distanceSmoothing: 0.2
+  distanceSmoothing: 0.85
   dataMaxAge: 0.25
   usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
   storm: {fileID: 0}
-  stormOnThreshold: 0.35
-  stormOffThreshold: 0.3
-  stageManager: {fileID: 2143343883}
+  stageManager: {fileID: 0}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   debugGUI: 1
   verboseLogs: 1
   summaryLogInterval: 1
@@ -10027,16 +10093,23 @@ MonoBehaviour:
   target: {fileID: 0}
   scaleMin: 0.6
   scaleMax: 1.4
-  distanceSmoothing: 0.2
+  distanceSmoothing: 0.85
   dataMaxAge: 0.25
   usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
   storm: {fileID: 0}
-  stormOnThreshold: 0.35
-  stormOffThreshold: 0.3
-  stageManager: {fileID: 2143343883}
+  stageManager: {fileID: 0}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   debugGUI: 1
   verboseLogs: 1
   summaryLogInterval: 1
@@ -12630,13 +12703,20 @@ MonoBehaviour:
   distanceSmoothing: 0.85
   dataMaxAge: 0.25
   usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
   storm: {fileID: 0}
-  stormOnThreshold: 0.35
-  stormOffThreshold: 0.3
   stageManager: {fileID: 0}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   debugGUI: 1
   verboseLogs: 1
   summaryLogInterval: 1

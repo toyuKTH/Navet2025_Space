@@ -11,7 +11,7 @@ public class Shaking : MonoBehaviour
     [Header("Holistic（不填会自动找名为 Solution 的对象）")]
     public HolisticTrackingSolution holistic;
 
-    [Header("要缩放的目标（为空则缩放自己）")]
+    [Header("目标对象（为空则缩放自己）")]
     public Transform target;
 
     [Header("缩放映射（输入=双手距离 0..1）")]
@@ -25,16 +25,29 @@ public class Shaking : MonoBehaviour
     [Tooltip("true=用掌心（腕+食指根平均），false=用手腕")]
     public bool usePalmCenter = true;
 
-    [Header("Storm（简单：超过阈值则开，带滞回）")]
+    [Header("Storm 触发（基于变化量 Δdistance）")]
+    [Tooltip("当平滑后的距离变化量 |Δ| 超过该阈值时触发一次风暴")]
+    public float stormChangeThreshold = 0.02f;
+    [Tooltip("两次触发之间的最小间隔（秒）")]
+    public float stormRetriggerDelay = 0.6f;
+    [Tooltip("风暴一次触发后维持的时间（秒）")]
+    public float stormHoldTime = 0.6f;
     public RockStormSpawner storm;
-    [Range(0f, 1f)] public float stormOnThreshold = 0.35f;   // t 超过此值打开
-    [Range(0f, 1f)] public float stormOffThreshold = 0.30f;  // t 低于此值关闭（避免抖动）
 
-    [Header("MIDI（最小：把 t 作为 timbre01 连续输出）")]
-    public MIDIStageManager stageManager;
+    [Header("MIDI")]
+    public MIDIStageManager stageManager;     // 连续控制走这里
     public bool sendContinuousToMIDI = true;
     [Range(0f, 1f)] public float midiPitch01 = 0.5f;
     [Range(0f, 1f)] public float midiRate01  = 0.5f;
+
+    [Header("MIDI: Note（距离变化超阈值时打一记音）")]
+    public SonificationMelody midiMelody;     // 仅用于 PlayNote
+    public bool triggerNoteOnChange = true;
+    public int baseNote = 60;                 // C4
+    public int noteRange = 12;                // [baseNote .. baseNote+noteRange]
+    public float noteDuration = 0.30f;        // 秒
+    [Tooltip("触发 Note 的变化阈值（可与 stormChangeThreshold 相同或略小）")]
+    public float noteChangeThreshold = 0.02f;
 
     [Header("调试")]
     public bool debugGUI = true;
@@ -56,14 +69,17 @@ public class Shaking : MonoBehaviour
     private float leftTime  = -999f;
     private float rightTime = -999f;
 
-    // 计算状态
+    // 距离状态
     private float filteredDist = -1f;   // 平滑后的距离
-    private Vector3 baseScale;
+    private float prevFilteredDist = -1f;
 
-    // 调试/状态
+    // 其他状态
+    private Vector3 baseScale;
+    private Coroutine stormHoldCo;
+    private float lastStormTrig = -999f;
+    private float lastDistanceForNote = -1f;  // Note 触发比较
     private float nextSummaryAt = 0f;
     private string lastEarlyExit = "";
-    private bool stormOn = false;
 
     // 手部关键点索引
     const int WRIST = 0;
@@ -82,7 +98,6 @@ public class Shaking : MonoBehaviour
 
     IEnumerator Connect()
     {
-        // 等 Mediapipe 起
         yield return new WaitForSeconds(1.2f);
 
         if (!holistic)
@@ -170,10 +185,11 @@ public class Shaking : MonoBehaviour
         if (leftNew)  { leftTime  = Time.time; leftNew  = false; }
         if (rightNew) { rightTime = Time.time; rightNew = false; }
 
+        // 条件不满足：回正 + Storm 关闭 + 不发 MIDI
         if (!(leftValid && rightValid))
         {
             EarlyExit("没有同时拿到左右手有效数据");
-            MaybeStormOff();
+            ResetVisualAndStorm();
             return;
         }
 
@@ -181,7 +197,7 @@ public class Shaking : MonoBehaviour
         if (dt > dataMaxAge)
         {
             EarlyExit($"左右手时间差过大 Δt={dt:0.000}s > {dataMaxAge:0.000}s");
-            MaybeStormOff();
+            ResetVisualAndStorm();
             return;
         }
 
@@ -194,9 +210,9 @@ public class Shaking : MonoBehaviour
         float raw = Vector2.Distance(new Vector2(lp.x, lp.y), new Vector2(rp.x, rp.y));
 
         // 低通
-        if (filteredDist < 0f) filteredDist = raw;
-        else
-        {
+        if (filteredDist < 0f) { filteredDist = raw; prevFilteredDist = raw; }
+        else {
+            prevFilteredDist = filteredDist;
             float a = 1f - Mathf.Clamp01(distanceSmoothing);
             filteredDist = Mathf.Lerp(filteredDist, raw, a);
         }
@@ -208,33 +224,57 @@ public class Shaking : MonoBehaviour
         float s = Mathf.Lerp(scaleMin, scaleMax, t);
         target.localScale = baseScale * s;
 
-        // ===== Storm：简单阈值 + 滞回 =====
-        if (storm)
+        // ===== Storm：仅当变化量超过阈值时触发一次，维持 holdTime 后自动关闭 =====
+        float delta = Mathf.Abs(filteredDist - prevFilteredDist);
+        if (storm && delta > stormChangeThreshold && (Time.time - lastStormTrig) >= stormRetriggerDelay)
         {
-            if (!stormOn && t >= stormOnThreshold) { storm.Activate(true); stormOn = true; }
-            else if (stormOn && t <= stormOffThreshold) { storm.Activate(false); stormOn = false; }
+            lastStormTrig = Time.time;
+            storm.Activate(true);
+            if (stormHoldCo != null) StopCoroutine(stormHoldCo);
+            stormHoldCo = StartCoroutine(StormAutoOff(stormHoldTime));
         }
 
-        // ===== MIDI：把 t 连续发给 timbre01（最简）=====
+        // ===== MIDI：连续控制 走 MIDIStageManager.ApplyControls(...) =====
         if (stageManager && sendContinuousToMIDI)
         {
             stageManager.ApplyControls(midiPitch01, t, midiRate01);
         }
 
+        // ===== MIDI：变化超过阈值触发一个 Note（可选）=====
+        if (midiMelody && triggerNoteOnChange && lastDistanceForNote > 0f && Mathf.Abs(filteredDist - lastDistanceForNote) > noteChangeThreshold)
+        {
+            int note = Mathf.Clamp(Mathf.RoundToInt(baseNote + t * noteRange), baseNote, baseNote + noteRange);
+            midiMelody.PlayNote(note, 100, noteDuration);
+        }
+        lastDistanceForNote = filteredDist;
+
         // 汇总日志
         if (Time.time >= nextSummaryAt)
         {
             nextSummaryAt = Time.time + Mathf.Max(0.1f, summaryLogInterval);
-            Log($"UPD: raw={raw:0.000} filtered={filteredDist:0.000} t={t:0.00} scale={s:0.00} Δt={dt:0.000}s storm={(stormOn?"ON":"OFF")}");
+            Log($"UPD: raw={raw:0.000} filtered={filteredDist:0.000} Δ={delta:0.000} t={t:0.00} scale={s:0.00} Δt={dt:0.000}s");
         }
 
         lastEarlyExit = "";
     }
 
     // ============== 工具/调试 ==============
-    void MaybeStormOff()
+    IEnumerator StormAutoOff(float sec)
     {
-        if (storm && stormOn) { storm.Activate(false); stormOn = false; }
+        yield return new WaitForSeconds(Mathf.Max(0f, sec));
+        if (storm) storm.Activate(false);
+        stormHoldCo = null;
+    }
+
+    void ResetVisualAndStorm()
+    {
+        if (target) target.localScale = baseScale;      // 回到初始大小
+        if (storm)
+        {
+            storm.Activate(false);                      // 关风暴
+            if (stormHoldCo != null) { StopCoroutine(stormHoldCo); stormHoldCo = null; }
+        }
+        // MIDI：此处不发任何控制/音符（保持静默）
     }
 
     void EarlyExit(string reason)
@@ -272,18 +312,17 @@ public class Shaking : MonoBehaviour
 
         float dt = Mathf.Abs(leftTime - rightTime);
         Log($"[{tag}] leftValid={leftValid} tL={leftTime:0.000}  rightValid={rightValid} tR={rightTime:0.000}  Δt={dt:0.000}  " +
-            $"L=({lp.x:0.000},{lp.y:0.000}) R=({rp.x:0.000},{rp.y:0.000}) filtered={filteredDist:0.000} storm={stormOn}");
+            $"L=({lp.x:0.000},{lp.y:0.000}) R=({rp.x:0.000},{rp.y:0.000}) filtered={filteredDist:0.000}");
     }
 
     void OnGUI()
     {
         if (!debugGUI) return;
-        GUILayout.BeginArea(new Rect(10, 10, 520, 170), GUI.skin.box);
-        GUILayout.Label("Shaking · 双手距离 → 缩放（含 Storm/MIDI）  (按 L 打快照)");
-        GUILayout.Label($"leftValid={leftValid} tL={leftTime:0.00} | rightValid={rightValid} tR={rightTime:0.00}");
-        GUILayout.Label($"Δt={Mathf.Abs(leftTime - rightTime):0.000}s  (max {dataMaxAge:0.000}s)");
-        GUILayout.Label($"dist(filtered)={filteredDist:0.000}  smoothing={distanceSmoothing:0.00}");
-        GUILayout.Label($"scale=[{scaleMin:0.00}..{scaleMax:0.00}]  storm={(stormOn ? "ON" : "OFF")}");
+        GUILayout.BeginArea(new Rect(10, 10, 540, 170), GUI.skin.box);
+        GUILayout.Label("Shaking · 双手距离 → 缩放 + Storm(Δ阈值触发) + MIDI");
+        GUILayout.Label($"leftValid={leftValid} tL={leftTime:0.00} | rightValid={rightValid} tR={rightTime:0.00}  (max Δt={dataMaxAge:0.000}s)");
+        GUILayout.Label($"dist(filtered)={filteredDist:0.000}  Δ={Mathf.Abs(filteredDist - prevFilteredDist):0.000}  " +
+                        $"stormTh={stormChangeThreshold:0.000}  retrig={stormRetriggerDelay:0.00}s  hold={stormHoldTime:0.00}s");
         GUILayout.EndArea();
     }
 }
