@@ -1153,6 +1153,9 @@ MonoBehaviour:
   interruptRunningFlow: 1
   extraEarthWait: 0.1
   minInterval: 0
+  idleToHealthySeconds: 10
+  enableIdleAutoHealthy: 1
+  healthyBlendThreshold: 0.02
 --- !u!1001 &199158445
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1521,6 +1524,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 3
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &259651668
 GameObject:
   m_ObjectHideFlags: 0
@@ -3170,6 +3175,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 2
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &513766645
 GameObject:
   m_ObjectHideFlags: 0
@@ -5340,6 +5347,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 5
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!4 &768488252 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 26291658c810dac48b0e6ace2bc4ee41, type: 3}
@@ -5591,6 +5600,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 5
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!135 &848449777
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -6282,6 +6293,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 2
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!224 &954965979 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3259285889726014650, guid: 5713b959e3c77a58fb258133fc8e4aef, type: 3}
@@ -7161,6 +7174,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 2
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &1023563041 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1780893571593388, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
@@ -7853,7 +7868,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   earthRenderer: {fileID: 0}
-  duration: 2
+  duration: 5
   curve:
     serializedVersion: 2
     m_Curve:
@@ -8182,6 +8197,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: -1, z: 0}
   speed: 5
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &1158763519
 GameObject:
   m_ObjectHideFlags: 0
@@ -9167,6 +9184,9 @@ MonoBehaviour:
   interruptRunningFlow: 1
   extraEarthWait: 0.1
   minInterval: 0
+  idleToHealthySeconds: 10
+  enableIdleAutoHealthy: 1
+  healthyBlendThreshold: 0.02
 --- !u!1 &1299390437
 GameObject:
   m_ObjectHideFlags: 0
@@ -9292,6 +9312,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: -1, z: 0}
   speed: 3
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &1317185704
 GameObject:
   m_ObjectHideFlags: 0
@@ -9584,7 +9606,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   earthRenderer: {fileID: 1326663025}
-  duration: 2
+  duration: 5
   curve:
     serializedVersion: 2
     m_Curve:
@@ -10608,6 +10630,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 2
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &1424351754
 GameObject:
   m_ObjectHideFlags: 0
@@ -10723,6 +10747,9 @@ MonoBehaviour:
   interruptRunningFlow: 1
   extraEarthWait: 0.1
   minInterval: 0
+  idleToHealthySeconds: 10
+  enableIdleAutoHealthy: 1
+  healthyBlendThreshold: 0.02
 --- !u!1 &1437740983
 GameObject:
   m_ObjectHideFlags: 0
@@ -10909,6 +10936,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 5
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1001 &1474640448
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11528,8 +11557,8 @@ MonoBehaviour:
   holistic: {fileID: 275874969}
   world: {fileID: 1433556780}
   target: {fileID: 1549477483}
-  scaleMin: 0.6
-  scaleMax: 1.4
+  scaleMin: 0.9
+  scaleMax: 1.1
   distanceSmoothing: 0.2
   dataMaxAge: 0.25
   usePalmCenter: 1
@@ -11599,6 +11628,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: -1, z: 0}
   speed: 5
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &1552287941
 GameObject:
   m_ObjectHideFlags: 0
@@ -12245,7 +12276,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   earthRenderer: {fileID: 1669871165}
-  duration: 2
+  duration: 5
   curve:
     serializedVersion: 2
     m_Curve:
@@ -12827,8 +12858,8 @@ MonoBehaviour:
   holistic: {fileID: 275874969}
   world: {fileID: 1294893006}
   target: {fileID: 1746754591}
-  scaleMin: 0.6
-  scaleMax: 1.4
+  scaleMin: 0.9
+  scaleMax: 1.1
   distanceSmoothing: 0.2
   dataMaxAge: 0.25
   usePalmCenter: 1
@@ -12898,6 +12929,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: -1, z: 0}
   speed: 3
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &1753195116
 GameObject:
   m_ObjectHideFlags: 0
@@ -13809,8 +13842,8 @@ MonoBehaviour:
   holistic: {fileID: 275874969}
   world: {fileID: 198213108}
   target: {fileID: 1796313667}
-  scaleMin: 0.6
-  scaleMax: 1.4
+  scaleMin: 0.9
+  scaleMax: 1.1
   distanceSmoothing: 0.2
   dataMaxAge: 0.25
   usePalmCenter: 1
@@ -13880,6 +13913,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 5
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &1936307553
 GameObject:
   m_ObjectHideFlags: 0
@@ -14708,6 +14743,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 3
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1001 &2097897392
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15165,6 +15202,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axis: {x: 0, y: 1, z: 0}
   speed: 2
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!114 &2125477433
 MonoBehaviour:
   m_ObjectHideFlags: 0
