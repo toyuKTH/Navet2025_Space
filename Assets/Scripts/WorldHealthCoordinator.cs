@@ -25,7 +25,9 @@ public class WorldHealthCoordinator : MonoBehaviour
     public bool enableIdleAutoHealthy = true;
     float lastActionAt = -999f;
     bool idleTriggered = false;
-    bool earthIsHealthy = true; // 跟踪地球颜色是否处于“正常/健康”态
+
+    [Header("Derive from EarthColorController")]
+    [Range(0f, 1f)] public float healthyBlendThreshold = 0.02f; // CurrentBlend <= 阈值 且不在动画中 → 认为健康
 
     public enum Mode { Healthy, Depleted, Transitioning }
     public Mode Current { get; private set; } = Mode.Healthy;
@@ -101,7 +103,6 @@ public class WorldHealthCoordinator : MonoBehaviour
             yield return WaitEarthDone();
         }
 
-        earthIsHealthy = false;
         Current = Mode.Depleted;
     }
 
@@ -109,7 +110,7 @@ public class WorldHealthCoordinator : MonoBehaviour
     IEnumerator FlowHealthy()
     {
         // 若地球已处于健康颜色：不清树、不恢复颜色，直接保持/继续长树
-        if (earthIsHealthy)
+        if (IsEarthHealthy())
         {
             if (trees != null)
             {
@@ -136,8 +137,6 @@ public class WorldHealthCoordinator : MonoBehaviour
             yield return WaitEarthDone();
         }
 
-        earthIsHealthy = true;
-
         // 3) �ٿ�ʼ����
         if (trees != null)
         {
@@ -145,6 +144,13 @@ public class WorldHealthCoordinator : MonoBehaviour
         }
 
         Current = Mode.Healthy;
+    }
+
+    bool IsEarthHealthy()
+    {
+        if (earth == null) return true;
+        if (earth.IsAnimating) return false;
+        return earth.CurrentBlend <= Mathf.Clamp01(healthyBlendThreshold);
     }
 
     // ������ɫ�����ȴ��������� IsAnimating��û�оͰ� duration �ȣ�
