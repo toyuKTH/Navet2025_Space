@@ -641,6 +641,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 1669871169}
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1669871167}
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
@@ -837,24 +840,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944c12bbffdd0894192cbf2f3463b4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
   holistic: {fileID: 275874969}
-  target: {fileID: 148333946}
-  distanceChangeThreshold: 0.015
-  retriggerDelay: 0.6
-  distanceSmoothing: 0.2
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 0
-  storm: {fileID: 0}
   world: {fileID: 0}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
+  target: {fileID: 148333946}
+  scaleMin: 0.6
+  scaleMax: 1.4
+  distanceSmoothing: 0.2
+  dataMaxAge: 0.25
+  usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
+  storm: {fileID: 0}
+  stageManager: {fileID: 0}
+  sendContinuousToMIDI: 1
+  midiPitch01: 0.5
+  midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   tracks:
   - {fileID: 0}
   - {fileID: 0}
@@ -862,12 +869,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  ambient: {fileID: 0}
   enableTracksOnActivate: 1
   disableTracksOnDeactivate: 1
   openTracksOnFirstTriggerOnly: 0
-  globalPitchScale: 1
-  globalTimbreScale: 1
-  globalRateScale: 1
+  localPitchScale: 1
+  localTimbreScale: 1
+  localRateScale: 1
   perTrackScales:
   - pitch: 0
     timbre: 0
@@ -887,7 +895,11 @@ MonoBehaviour:
   - pitch: 0
     timbre: 0
     rate: 0
-  globalTransposeSemis: 0
+  localTransposeSemis: 0
+  debugGUI: 1
+  verboseLogs: 1
+  summaryLogInterval: 1
+  snapshotKey: 108
 --- !u!1 &160797197
 GameObject:
   m_ObjectHideFlags: 0
@@ -1140,6 +1152,7 @@ MonoBehaviour:
   earth: {fileID: 1095570516}
   interruptRunningFlow: 1
   extraEarthWait: 0.1
+  minInterval: 0
 --- !u!1001 &199158445
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1588,11 +1601,11 @@ Transform:
   m_GameObject: {fileID: 267165907}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 87.479996, y: 148.716, z: -1019.48505}
+  m_LocalScale: {x: 9.353074, y: 9.353074, z: 9.353074}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2145538756}
+  m_Father: {fileID: 419226605}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &267165909
 MonoBehaviour:
@@ -2407,6 +2420,9 @@ RectTransform:
   - {fileID: 88621831}
   - {fileID: 829376506}
   - {fileID: 198213107}
+  - {fileID: 267165908}
+  - {fileID: 1336144219}
+  - {fileID: 2098727294}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3080,24 +3096,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944c12bbffdd0894192cbf2f3463b4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
   holistic: {fileID: 0}
-  target: {fileID: 0}
-  distanceChangeThreshold: 0.01
-  retriggerDelay: 0.25
-  distanceSmoothing: 0.672
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 1
-  storm: {fileID: 0}
   world: {fileID: 0}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
+  target: {fileID: 0}
+  scaleMin: 0.6
+  scaleMax: 1.4
+  distanceSmoothing: 0.672
+  dataMaxAge: 0.25
+  usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
+  storm: {fileID: 0}
+  stageManager: {fileID: 0}
+  sendContinuousToMIDI: 1
+  midiPitch01: 0.5
+  midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   tracks:
   - {fileID: 0}
   - {fileID: 0}
@@ -3105,12 +3125,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  ambient: {fileID: 0}
   enableTracksOnActivate: 1
   disableTracksOnDeactivate: 1
   openTracksOnFirstTriggerOnly: 0
-  globalPitchScale: 1
-  globalTimbreScale: 1
-  globalRateScale: 1
+  localPitchScale: 1
+  localTimbreScale: 1
+  localRateScale: 1
   perTrackScales:
   - pitch: 0
     timbre: 0
@@ -3130,7 +3151,11 @@ MonoBehaviour:
   - pitch: 0
     timbre: 0
     rate: 0
-  globalTransposeSemis: 0
+  localTransposeSemis: 0
+  debugGUI: 1
+  verboseLogs: 1
+  summaryLogInterval: 1
+  snapshotKey: 108
 --- !u!114 &501599203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4287,11 +4312,11 @@ Transform:
   m_GameObject: {fileID: 646201870}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 9.352787, y: 15.899738, z: -1019.4538}
+  m_LocalScale: {x: 9.352787, y: 9.352787, z: 9.352787}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2145538756}
+  m_Father: {fileID: 2024528822}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &646201872
 MonoBehaviour:
@@ -5346,11 +5371,11 @@ Transform:
   m_GameObject: {fileID: 785550050}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 9.352787, y: 15.899738, z: -1019.4538}
+  m_LocalScale: {x: 9.352787, y: 9.352787, z: 9.352787}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2145538756}
+  m_Father: {fileID: 1576526711}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &785550052
 MonoBehaviour:
@@ -6025,6 +6050,78 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4834474408796258, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
   m_PrefabInstance: {fileID: 910289984}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &934377644
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 934377645}
+  - component: {fileID: 934377646}
+  m_Layer: 5
+  m_Name: AmbientGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &934377645
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 934377644}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1576526711}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &934377646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 934377644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cab2ca8f36ae65478ad0ab5aa50e8d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tracks:
+  - {fileID: 785550052}
+  baseBpm: 60
+  tempoMultiplier: 1
+  swing: 0
+  swingAmount: 0.12
+  rootMidi: 60
+  scaleSemis: 0000000002000000030000000500000007000000090000000a000000
+  lowOctave: -2
+  highOctave: 1
+  noteDensity: 0.35
+  lengthBeatsRange: {x: 0.25, y: 1.5}
+  velocityRange: {x: 70, y: 110}
+  enablePads: 1
+  padEveryBeats: 8
+  chordSizeRange: {x: 2, y: 4}
+  padLengthBeatsRange: {x: 2, y: 8}
+  timeJitterMs: 12
+  seed: 12345
+  masterVolume01: 0.7
+  masterTempoMult: 1
+  trackGains01: []
+  autoEnableTracksOnEnable: 1
+  autoDisableTracksOnDisable: 1
 --- !u!1 &944735031 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 26291658c810dac48b0e6ace2bc4ee41, type: 3}
@@ -6111,24 +6208,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944c12bbffdd0894192cbf2f3463b4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
   holistic: {fileID: 0}
-  target: {fileID: 0}
-  distanceChangeThreshold: 0.01
-  retriggerDelay: 0.25
-  distanceSmoothing: 0.672
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 1
-  storm: {fileID: 0}
   world: {fileID: 0}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
+  target: {fileID: 0}
+  scaleMin: 0.6
+  scaleMax: 1.4
+  distanceSmoothing: 0.672
+  dataMaxAge: 0.25
+  usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
+  storm: {fileID: 0}
+  stageManager: {fileID: 0}
+  sendContinuousToMIDI: 1
+  midiPitch01: 0.5
+  midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   tracks:
   - {fileID: 0}
   - {fileID: 0}
@@ -6136,12 +6237,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  ambient: {fileID: 0}
   enableTracksOnActivate: 1
   disableTracksOnDeactivate: 1
   openTracksOnFirstTriggerOnly: 0
-  globalPitchScale: 1
-  globalTimbreScale: 1
-  globalRateScale: 1
+  localPitchScale: 1
+  localTimbreScale: 1
+  localRateScale: 1
   perTrackScales:
   - pitch: 0
     timbre: 0
@@ -6161,7 +6263,11 @@ MonoBehaviour:
   - pitch: 0
     timbre: 0
     rate: 0
-  globalTransposeSemis: 0
+  localTransposeSemis: 0
+  debugGUI: 1
+  verboseLogs: 1
+  summaryLogInterval: 1
+  snapshotKey: 108
 --- !u!114 &944735037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7703,6 +7809,9 @@ PrefabInstance:
       addedObject: {fileID: 1095570516}
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1095570520}
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1095570515}
   m_SourcePrefab: {fileID: 100100000, guid: 8186fbba21e8a684287d265866f01822, type: 3}
 --- !u!4 &1095570511 stripped
@@ -7769,6 +7878,28 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1095570520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 578018887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b64f7707d1fabe4cbcea4d794255f2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holistic: {fileID: 275874969}
+  world: {fileID: 0}
+  spawner: {fileID: 670025098}
+  burstDuration: 1.2
+  retriggerDelay: 1.2
+  lockDuringPhase: 1
+  holdTime: 0.2
+  soloHandMinTime: 0.25
+  debugGUI: 1
+  verboseLogs: 1
 --- !u!1001 &1104923191
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7843,6 +7974,78 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4929390694778954, guid: 522fd593b84f3274fbd5b1078b96e241, type: 3}
   m_PrefabInstance: {fileID: 1104923191}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1114758762
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1114758763}
+  - component: {fileID: 1114758764}
+  m_Layer: 5
+  m_Name: AmbientGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1114758763
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1114758762}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2024528822}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1114758764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1114758762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cab2ca8f36ae65478ad0ab5aa50e8d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tracks:
+  - {fileID: 1753195118}
+  baseBpm: 60
+  tempoMultiplier: 1
+  swing: 0
+  swingAmount: 0.12
+  rootMidi: 60
+  scaleSemis: 0000000002000000030000000500000007000000090000000a000000
+  lowOctave: -2
+  highOctave: 1
+  noteDensity: 0.35
+  lengthBeatsRange: {x: 0.25, y: 1.5}
+  velocityRange: {x: 70, y: 110}
+  enablePads: 1
+  padEveryBeats: 8
+  chordSizeRange: {x: 2, y: 4}
+  padLengthBeatsRange: {x: 2, y: 8}
+  timeJitterMs: 12
+  seed: 12345
+  masterVolume01: 0.7
+  masterTempoMult: 1
+  trackGains01: []
+  autoEnableTracksOnEnable: 1
+  autoDisableTracksOnDisable: 1
 --- !u!1 &1122269973
 GameObject:
   m_ObjectHideFlags: 0
@@ -7977,25 +8180,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e51d7dbdcd18d72418cf7b9d614a6f1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
-  holistic: {fileID: 275874969}
-  stageManager: {fileID: 2143343883}
-  target: {fileID: 1145809162}
-  distanceChangeThreshold: 0.015
-  retriggerDelay: 0.6
-  distanceSmoothing: 0.2
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 0
-  storm: {fileID: 0}
-  world: {fileID: 0}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
   axis: {x: 0, y: -1, z: 0}
   speed: 5
 --- !u!1 &1158763519
@@ -8982,6 +9166,7 @@ MonoBehaviour:
   earth: {fileID: 1326663028}
   interruptRunningFlow: 1
   extraEarthWait: 0.1
+  minInterval: 0
 --- !u!1 &1299390437
 GameObject:
   m_ObjectHideFlags: 0
@@ -9346,6 +9531,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: 3
+      addedObject: {fileID: 1326663031}
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1326663027}
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
@@ -9421,6 +9609,28 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1326663031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 794356974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b64f7707d1fabe4cbcea4d794255f2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holistic: {fileID: 275874969}
+  world: {fileID: 0}
+  spawner: {fileID: 1722904695}
+  burstDuration: 1.2
+  retriggerDelay: 1.2
+  lockDuringPhase: 1
+  holdTime: 0.2
+  soloHandMinTime: 0.25
+  debugGUI: 1
+  verboseLogs: 1
 --- !u!1001 &1334974596
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9721,11 +9931,11 @@ Transform:
   m_GameObject: {fileID: 1336144217}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 87.479996, y: 148.716, z: -1019.48505}
+  m_LocalScale: {x: 9.353074, y: 9.353074, z: 9.353074}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2145538756}
+  m_Father: {fileID: 419226605}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1341325524
 GameObject:
@@ -10512,6 +10722,7 @@ MonoBehaviour:
   earth: {fileID: 1669871168}
   interruptRunningFlow: 1
   extraEarthWait: 0.1
+  minInterval: 0
 --- !u!1 &1437740983
 GameObject:
   m_ObjectHideFlags: 0
@@ -10792,24 +11003,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944c12bbffdd0894192cbf2f3463b4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
   holistic: {fileID: 275874969}
-  target: {fileID: 1474640449}
-  distanceChangeThreshold: 0.015
-  retriggerDelay: 0.6
-  distanceSmoothing: 0.2
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 0
-  storm: {fileID: 0}
   world: {fileID: 0}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
+  target: {fileID: 1474640449}
+  scaleMin: 0.6
+  scaleMax: 1.4
+  distanceSmoothing: 0.2
+  dataMaxAge: 0.25
+  usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
+  storm: {fileID: 0}
+  stageManager: {fileID: 0}
+  sendContinuousToMIDI: 1
+  midiPitch01: 0.5
+  midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   tracks:
   - {fileID: 0}
   - {fileID: 0}
@@ -10817,12 +11032,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  ambient: {fileID: 0}
   enableTracksOnActivate: 1
   disableTracksOnDeactivate: 1
   openTracksOnFirstTriggerOnly: 0
-  globalPitchScale: 1
-  globalTimbreScale: 1
-  globalRateScale: 1
+  localPitchScale: 1
+  localTimbreScale: 1
+  localRateScale: 1
   perTrackScales:
   - pitch: 0
     timbre: 0
@@ -10842,7 +11058,11 @@ MonoBehaviour:
   - pitch: 0
     timbre: 0
     rate: 0
-  globalTransposeSemis: 0
+  localTransposeSemis: 0
+  debugGUI: 1
+  verboseLogs: 1
+  summaryLogInterval: 1
+  snapshotKey: 108
 --- !u!1001 &1487504803
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11305,24 +11525,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944c12bbffdd0894192cbf2f3463b4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
   holistic: {fileID: 275874969}
-  target: {fileID: 1549477483}
-  distanceChangeThreshold: 0.015
-  retriggerDelay: 0.6
-  distanceSmoothing: 0.2
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 0
-  storm: {fileID: 1868417576}
   world: {fileID: 1433556780}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
+  target: {fileID: 1549477483}
+  scaleMin: 0.6
+  scaleMax: 1.4
+  distanceSmoothing: 0.2
+  dataMaxAge: 0.25
+  usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
+  storm: {fileID: 1868417576}
+  stageManager: {fileID: 0}
+  sendContinuousToMIDI: 1
+  midiPitch01: 0.5
+  midiRate01: 0.5
+  midiMelody: {fileID: 785550052}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   tracks:
   - {fileID: 785550052}
   - {fileID: 0}
@@ -11330,12 +11554,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  ambient: {fileID: 934377646}
   enableTracksOnActivate: 1
   disableTracksOnDeactivate: 1
   openTracksOnFirstTriggerOnly: 0
-  globalPitchScale: 1
-  globalTimbreScale: 1
-  globalRateScale: 1
+  localPitchScale: 1
+  localTimbreScale: 1
+  localRateScale: 1
   perTrackScales:
   - pitch: 0
     timbre: 0
@@ -11355,7 +11580,11 @@ MonoBehaviour:
   - pitch: 0
     timbre: 0
     rate: 0
-  globalTransposeSemis: 0
+  localTransposeSemis: 0
+  debugGUI: 1
+  verboseLogs: 1
+  summaryLogInterval: 1
+  snapshotKey: 108
 --- !u!114 &1549477489
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11591,7 +11820,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1576526709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11648,6 +11877,9 @@ RectTransform:
   - {fileID: 1644547240}
   - {fileID: 614451160}
   - {fileID: 1433556779}
+  - {fileID: 785550051}
+  - {fileID: 1595255634}
+  - {fileID: 934377645}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -11681,11 +11913,11 @@ Transform:
   m_GameObject: {fileID: 1595255633}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 9.352787, y: 15.899738, z: -1019.4538}
+  m_LocalScale: {x: 9.352787, y: 9.352787, z: 9.352787}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2145538756}
+  m_Father: {fileID: 1576526711}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1595255635
 MonoBehaviour:
@@ -12038,6 +12270,28 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1669871169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1669871163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b64f7707d1fabe4cbcea4d794255f2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holistic: {fileID: 275874969}
+  world: {fileID: 0}
+  spawner: {fileID: 1186483395}
+  burstDuration: 1.2
+  retriggerDelay: 1.2
+  lockDuringPhase: 1
+  holdTime: 0.2
+  soloHandMinTime: 0.25
+  debugGUI: 1
+  verboseLogs: 1
 --- !u!1 &1690396958 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 137650, guid: 826b6a0b570e8460990010fa615b5a2a, type: 3}
@@ -12570,24 +12824,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944c12bbffdd0894192cbf2f3463b4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
   holistic: {fileID: 275874969}
-  target: {fileID: 1746754591}
-  distanceChangeThreshold: 0.015
-  retriggerDelay: 0.6
-  distanceSmoothing: 0.2
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 0
-  storm: {fileID: 1718126208}
   world: {fileID: 1294893006}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
+  target: {fileID: 1746754591}
+  scaleMin: 0.6
+  scaleMax: 1.4
+  distanceSmoothing: 0.2
+  dataMaxAge: 0.25
+  usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
+  storm: {fileID: 1718126208}
+  stageManager: {fileID: 0}
+  sendContinuousToMIDI: 1
+  midiPitch01: 0.5
+  midiRate01: 0.5
+  midiMelody: {fileID: 1753195118}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   tracks:
   - {fileID: 1753195118}
   - {fileID: 0}
@@ -12595,12 +12853,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  ambient: {fileID: 1114758764}
   enableTracksOnActivate: 1
   disableTracksOnDeactivate: 1
   openTracksOnFirstTriggerOnly: 0
-  globalPitchScale: 1
-  globalTimbreScale: 1
-  globalRateScale: 1
+  localPitchScale: 1
+  localTimbreScale: 1
+  localRateScale: 1
   perTrackScales:
   - pitch: 0
     timbre: 0
@@ -12620,7 +12879,11 @@ MonoBehaviour:
   - pitch: 0
     timbre: 0
     rate: 0
-  globalTransposeSemis: 0
+  localTransposeSemis: 0
+  debugGUI: 1
+  verboseLogs: 1
+  summaryLogInterval: 1
+  snapshotKey: 108
 --- !u!114 &1746754596
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12661,11 +12924,11 @@ Transform:
   m_GameObject: {fileID: 1753195116}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 9.352787, y: 15.899738, z: -1019.4538}
+  m_LocalScale: {x: 9.352787, y: 9.352787, z: 9.352787}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2145538756}
+  m_Father: {fileID: 2024528822}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1753195118
 MonoBehaviour:
@@ -13543,24 +13806,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944c12bbffdd0894192cbf2f3463b4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
   holistic: {fileID: 275874969}
-  target: {fileID: 1796313667}
-  distanceChangeThreshold: 0.015
-  retriggerDelay: 0.6
-  distanceSmoothing: 0.2
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 0
-  storm: {fileID: 1678892}
   world: {fileID: 198213108}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
+  target: {fileID: 1796313667}
+  scaleMin: 0.6
+  scaleMax: 1.4
+  distanceSmoothing: 0.2
+  dataMaxAge: 0.25
+  usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
+  storm: {fileID: 1678892}
+  stageManager: {fileID: 0}
+  sendContinuousToMIDI: 1
+  midiPitch01: 0.5
+  midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   tracks:
   - {fileID: 267165909}
   - {fileID: 0}
@@ -13568,12 +13835,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  ambient: {fileID: 2098727295}
   enableTracksOnActivate: 1
   disableTracksOnDeactivate: 1
   openTracksOnFirstTriggerOnly: 0
-  globalPitchScale: 1
-  globalTimbreScale: 1
-  globalRateScale: 1
+  localPitchScale: 1
+  localTimbreScale: 1
+  localRateScale: 1
   perTrackScales:
   - pitch: 0
     timbre: 0
@@ -13593,7 +13861,11 @@ MonoBehaviour:
   - pitch: 0
     timbre: 0
     rate: 0
-  globalTransposeSemis: 0
+  localTransposeSemis: 0
+  debugGUI: 1
+  verboseLogs: 1
+  summaryLogInterval: 1
+  snapshotKey: 108
 --- !u!114 &1915102963
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14167,6 +14439,9 @@ RectTransform:
   - {fileID: 160797198}
   - {fileID: 2136006216}
   - {fileID: 1294893005}
+  - {fileID: 1753195117}
+  - {fileID: 646201871}
+  - {fileID: 1114758763}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -14641,6 +14916,78 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2081975731}
   m_SourcePrefab: {fileID: 100100000, guid: 4be7a99d429a19840a38df28f88a8680, type: 3}
+--- !u!1 &2098727293
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2098727294}
+  - component: {fileID: 2098727295}
+  m_Layer: 5
+  m_Name: AmbientGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2098727294
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2098727293}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 419226605}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2098727295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2098727293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cab2ca8f36ae65478ad0ab5aa50e8d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tracks:
+  - {fileID: 1336144218}
+  baseBpm: 60
+  tempoMultiplier: 1
+  swing: 0
+  swingAmount: 0.12
+  rootMidi: 60
+  scaleSemis: 0000000002000000030000000500000007000000090000000a000000
+  lowOctave: -2
+  highOctave: 1
+  noteDensity: 0.35
+  lengthBeatsRange: {x: 0.25, y: 1.5}
+  velocityRange: {x: 70, y: 110}
+  enablePads: 1
+  padEveryBeats: 8
+  chordSizeRange: {x: 2, y: 4}
+  padLengthBeatsRange: {x: 2, y: 8}
+  timeJitterMs: 12
+  seed: 12345
+  masterVolume01: 0.7
+  masterTempoMult: 1
+  trackGains01: []
+  autoEnableTracksOnEnable: 1
+  autoDisableTracksOnDisable: 1
 --- !u!1001 &2115636459
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14830,24 +15177,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944c12bbffdd0894192cbf2f3463b4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugLogs: 1
   holistic: {fileID: 0}
-  target: {fileID: 0}
-  distanceChangeThreshold: 0.015
-  retriggerDelay: 0.6
-  distanceSmoothing: 0.85
-  enableIdleBreathing: 1
-  breathingAmplitude: 0.03
-  breathingSpeedHz: 0.12
-  pulseScale: 1.12
-  pulseDuration: 0.18
-  shakeIntensity: 0.08
-  shakeDuration: 0.12
-  showOnGUI: 1
-  storm: {fileID: 0}
   world: {fileID: 0}
-  changeWorldOnTrigger: 0
-  depleteOnTrigger: 1
+  target: {fileID: 0}
+  scaleMin: 0.6
+  scaleMax: 1.4
+  distanceSmoothing: 0.85
+  dataMaxAge: 0.25
+  usePalmCenter: 1
+  stormChangeThreshold: 0.02
+  stormRetriggerDelay: 0.6
+  stormHoldTime: 0.6
+  storm: {fileID: 0}
+  stageManager: {fileID: 0}
+  sendContinuousToMIDI: 1
+  midiPitch01: 0.5
+  midiRate01: 0.5
+  midiMelody: {fileID: 0}
+  triggerNoteOnChange: 1
+  baseNote: 60
+  noteRange: 12
+  noteDuration: 0.3
+  noteChangeThreshold: 0.02
   tracks:
   - {fileID: 0}
   - {fileID: 0}
@@ -14855,12 +15206,13 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  ambient: {fileID: 0}
   enableTracksOnActivate: 1
   disableTracksOnDeactivate: 1
   openTracksOnFirstTriggerOnly: 0
-  globalPitchScale: 1
-  globalTimbreScale: 1
-  globalRateScale: 1
+  localPitchScale: 1
+  localTimbreScale: 1
+  localRateScale: 1
   perTrackScales:
   - pitch: 0
     timbre: 0
@@ -14880,7 +15232,11 @@ MonoBehaviour:
   - pitch: 0
     timbre: 0
     rate: 0
-  globalTransposeSemis: 0
+  localTransposeSemis: 0
+  debugGUI: 1
+  verboseLogs: 1
+  summaryLogInterval: 1
+  snapshotKey: 108
 --- !u!1 &2134221390
 GameObject:
   m_ObjectHideFlags: 0
@@ -15123,12 +15479,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 785550051}
-  - {fileID: 1753195117}
-  - {fileID: 267165908}
-  - {fileID: 1595255634}
-  - {fileID: 646201871}
-  - {fileID: 1336144219}
   - {fileID: 1424351755}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

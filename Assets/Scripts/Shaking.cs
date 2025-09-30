@@ -11,6 +11,9 @@ public class Shaking : MonoBehaviour
     [Header("Holistic（不填会自动找名为 Solution 的对象）")]
     public HolisticTrackingSolution holistic;
 
+    [Header("World Health（推荐优先使用）")]
+    public WorldHealthCoordinator world;   // ✨ 新增：协调器引用
+
     [Header("目标对象（为空则缩放自己）")]
     public Transform target;
 
@@ -39,7 +42,7 @@ public class Shaking : MonoBehaviour
     public MIDIStageManager stageManager;     // 连续控制
     public bool sendContinuousToMIDI = true;
     [Range(0f, 1f)] public float midiPitch01 = 0.5f;
-    [Range(0f, 1f)] public float midiRate01  = 0.5f;
+    [Range(0f, 1f)] public float midiRate01 = 0.5f;
 
     [Header("MIDI: Note（距离变化超阈值时打一记音）")]
     public SonificationMelody midiMelody;     // 仅用于 PlayNote
@@ -54,11 +57,8 @@ public class Shaking : MonoBehaviour
     [Header("🎵 可选：本地多轨 + Ambient 生成器")]
     public SonificationMelody[] tracks;                 // 本面板内需要被控制/打音的多条轨
     public GenerativeAmbientMidi ambient;               // 面板内的 AmbientGenerator
-    [Tooltip("面板激活时是否启用本面板轨道（SonificationMelody.enabled = true）")]
     public bool enableTracksOnActivate = true;
-    [Tooltip("离开面板时是否禁用这些轨道")]
     public bool disableTracksOnDeactivate = true;
-    [Tooltip("（可选）仅在第一次“Δ触发”时再打开轨道")]
     public bool openTracksOnFirstTriggerOnly = false;
 
     [Header("可选：本地多轨缩放（叠加）")]
@@ -79,17 +79,17 @@ public class Shaking : MonoBehaviour
     public KeyCode snapshotKey = KeyCode.L;
 
     // ===== 回调线程写 / 主线程读 =====
-    private readonly Vector3[] leftLms  = new Vector3[21];
+    private readonly Vector3[] leftLms = new Vector3[21];
     private readonly Vector3[] rightLms = new Vector3[21];
-    private readonly object leftLock  = new object();
+    private readonly object leftLock = new object();
     private readonly object rightLock = new object();
-    private volatile bool leftValid  = false;
+    private volatile bool leftValid = false;
     private volatile bool rightValid = false;
-    private volatile bool leftNew    = false;
-    private volatile bool rightNew   = false;
+    private volatile bool leftNew = false;
+    private volatile bool rightNew = false;
 
     // 主线程时间戳
-    private float leftTime  = -999f;
+    private float leftTime = -999f;
     private float rightTime = -999f;
 
     // 距离状态
@@ -117,9 +117,7 @@ public class Shaking : MonoBehaviour
         if (!target) target = transform;
         baseScale = target.localScale;
 
-        // 可选：修正 perTrackScales 长度
         EnsurePerTrackScales();
-
         StartCoroutine(Connect());
         StartCoroutine(Watchdog());
     }
@@ -127,7 +125,6 @@ public class Shaking : MonoBehaviour
     void OnEnable()
     {
         _tracksOpenedOnce = false;
-        // 仅当配置了 tracks 时才动作；不影响原逻辑
         if (enableTracksOnActivate && tracks != null && tracks.Length > 0 && !openTracksOnFirstTriggerOnly)
             SetTracksEnabled(true);
     }
@@ -188,7 +185,7 @@ public class Shaking : MonoBehaviour
 
             if (g == null) { Log("❌ 拿不到 graphRunner（可能包版本接口不同）"); return; }
 
-            g.OnLeftHandLandmarksOutput  += OnLeft;
+            g.OnLeftHandLandmarksOutput += OnLeft;
             g.OnRightHandLandmarksOutput += OnRight;
             Log("✅ 已注册左右手 landmark 回调");
         }
@@ -209,7 +206,7 @@ public class Shaking : MonoBehaviour
                 leftLms[i] = new Vector3(lm.X, lm.Y, lm.Z);
             }
             leftValid = true;
-            leftNew   = true;
+            leftNew = true;
         }
     }
 
@@ -226,7 +223,7 @@ public class Shaking : MonoBehaviour
                 rightLms[i] = new Vector3(lm.X, lm.Y, lm.Z);
             }
             rightValid = true;
-            rightNew   = true;
+            rightNew = true;
         }
     }
 
@@ -235,7 +232,7 @@ public class Shaking : MonoBehaviour
     {
         if (Input.GetKeyDown(snapshotKey)) DumpSnapshot("手动快照");
 
-        if (leftNew)  { leftTime  = Time.time; leftNew  = false; }
+        if (leftNew) { leftTime = Time.time; leftNew = false; }
         if (rightNew) { rightTime = Time.time; rightNew = false; }
 
         // 条件不满足：回正 + Storm 关闭 + 不发 MIDI
@@ -254,46 +251,58 @@ public class Shaking : MonoBehaviour
             return;
         }
 
-        // —— 复制 landmark 到临时变量后计算 —— 
+        // —— 复制 landmark 后计算 —— 
         Vector3 lp, rp;
-        lock (leftLock)  lp = PalmPoint(leftLms);
+        lock (leftLock) lp = PalmPoint(leftLms);
         lock (rightLock) rp = PalmPoint(rightLms);
 
-        // 用 xy 归一化坐标算欧氏距离
-        float raw = Vector2.Distance(new Vector2(lp.x, lp.y), new Vector2(rp.x, rp.y));
+        float raw = Vector2.Distance(new Vector2(lp.x, lp.y), new Vector2(rp.x, rp.y)); // 用 xy
 
         // 低通
         if (filteredDist < 0f) { filteredDist = raw; prevFilteredDist = raw; }
-        else {
+        else
+        {
             prevFilteredDist = filteredDist;
             float a = 1f - Mathf.Clamp01(distanceSmoothing);
             filteredDist = Mathf.Lerp(filteredDist, raw, a);
         }
 
-        // 距离→0..1（按你的镜头需要调整这两个阈值）
+        // 距离→0..1（按镜头需要调整阈值）
         float t = Mathf.Clamp01(Mathf.InverseLerp(0.05f, 0.45f, filteredDist));
 
         // ===== 视觉：缩放 =====
         float s = Mathf.Lerp(scaleMin, scaleMax, t);
         if (target) target.localScale = baseScale * s;
 
-        // ===== Storm：仅当变化量超过阈值时触发一次，维持 holdTime 后自动关闭 =====
+        // ===== Storm：当 Δ 超阈值时触发一次 =====
         float delta = Mathf.Abs(filteredDist - prevFilteredDist);
-        if (storm && delta > stormChangeThreshold && (Time.time - lastStormTrig) >= stormRetriggerDelay)
+        if (delta > stormChangeThreshold && (Time.time - lastStormTrig) >= stormRetriggerDelay)
         {
             lastStormTrig = Time.time;
-            storm.Activate(true);
-            if (stormHoldCo != null) StopCoroutine(stormHoldCo);
-            stormHoldCo = StartCoroutine(StormAutoOff(stormHoldTime));
+
+            if (storm)
+            {
+                storm.Activate(true);
+                if (stormHoldCo != null) StopCoroutine(stormHoldCo);
+                stormHoldCo = StartCoroutine(StormAutoOff(stormHoldTime));
+            }
+
+            // ✅ 联动：抖动脉冲 → 通知协调器“变坏”
+            if (world != null)
+            {
+                Log("⚡ Shaking 脉冲 → WorldHealthCoordinator.GoDepleted()");
+                world.NotifyUserAction();
+                world.GoDepleted();
+            }
         }
 
-        // ===== 原逻辑：MIDIStageManager 连续控制 =====
+        // ===== 连续控制（MIDIStageManager）=====
         if (stageManager && sendContinuousToMIDI)
         {
             stageManager.ApplyControls(midiPitch01, t, midiRate01);
         }
 
-        // ===== 原逻辑：变化超过阈值触发一个 Note（可选）=====
+        // ===== 变化超过阈值触发一个 Note（可选）=====
         if (midiMelody && triggerNoteOnChange && lastDistanceForNote > 0f && Mathf.Abs(filteredDist - lastDistanceForNote) > noteChangeThreshold)
         {
             int note = Mathf.Clamp(Mathf.RoundToInt(baseNote + t * noteRange), baseNote, baseNote + noteRange);
@@ -304,20 +313,18 @@ public class Shaking : MonoBehaviour
         // ===== 可选扩展：把 t/Δ 同步给本地多轨 + Ambient =====
         if (tracks != null && tracks.Length > 0)
         {
-            // 首次“Δ触发”时才打开轨（可选）
             if (openTracksOnFirstTriggerOnly && !_tracksOpenedOnce && delta > stormChangeThreshold)
             {
                 SetTracksEnabled(true);
                 _tracksOpenedOnce = true;
             }
 
-            // 把 t 当作 timbre（0..1），Δ 当作强度的瞬时映射
             float pitch01 = 0.5f;
             float timbre01 = t;
             float rate01 = 0.5f;
 
             ApplyControlsLocal(pitch01, timbre01, rate01);
-            // 若你也希望本地多轨在“Δ触发”时打一记音：
+
             if (delta > noteChangeThreshold)
             {
                 int n = Mathf.Clamp(baseNote + localTransposeSemis + Mathf.RoundToInt(t * noteRange), 0, 127);
@@ -327,7 +334,6 @@ public class Shaking : MonoBehaviour
 
         if (ambient != null)
         {
-            // 手势强度 → 背景响度；速率 → 背景节奏倍率
             ambient.SetVolume01(t);
             ambient.SetTempoMultiplier(0.5f + 1.5f * midiRate01);
         }
@@ -358,7 +364,6 @@ public class Shaking : MonoBehaviour
             storm.Activate(false);                      // 关风暴
             if (stormHoldCo != null) { StopCoroutine(stormHoldCo); stormHoldCo = null; }
         }
-        // 保持 MIDI 静默（不发送控制）
     }
 
     void EarlyExit(string reason)
@@ -391,7 +396,7 @@ public class Shaking : MonoBehaviour
     void DumpSnapshot(string tag)
     {
         Vector3 lp, rp;
-        lock (leftLock)  lp = PalmPoint(leftLms);
+        lock (leftLock) lp = PalmPoint(leftLms);
         lock (rightLock) rp = PalmPoint(rightLms);
 
         float dt = Mathf.Abs(leftTime - rightTime);
@@ -403,7 +408,7 @@ public class Shaking : MonoBehaviour
     {
         if (!debugGUI) return;
         GUILayout.BeginArea(new Rect(10, 10, 560, 180), GUI.skin.box);
-        GUILayout.Label("Shaking · 双手距离 → 缩放 + Storm(Δ触发) + MIDI(Stage) + 可选本地多轨/Ambient");
+        GUILayout.Label("Shaking · 双手距离 → 缩放 + Storm(Δ触发) + MIDI(Stage) + 可选多轨/Ambient");
         GUILayout.Label($"leftValid={leftValid} tL={leftTime:0.00} | rightValid={rightValid} tR={rightTime:0.00}  (max Δt={dataMaxAge:0.000}s)");
         GUILayout.Label($"dist(filtered)={filteredDist:0.000}  Δ={Mathf.Abs(filteredDist - prevFilteredDist):0.000}  " +
                         $"stormTh={stormChangeThreshold:0.000}  retrig={stormRetriggerDelay:0.00}s  hold={stormHoldTime:0.00}s");

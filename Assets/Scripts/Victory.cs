@@ -11,11 +11,14 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
     [Header("Holistic（不填会自动找名为 Solution 的对象）")]
     public HolisticTrackingSolution holistic;
 
+    [Header("World Health（推荐优先使用）")]
+    public WorldHealthCoordinator world;     // ✨ 新增：协调器引用
+
     [Header("要驱动的生成器（TreeSpawnerOnSphere）")]
-    public TreeSpawnerOnSphere spawner;
+    public TreeSpawnerOnSphere spawner;      // 作为兼容展示/回调使用
 
     [Header("触发与时序")]
-    [Tooltip("✌️ 成功后保持生长的时长（秒），到点自动执行 BeginDisappear()")]
+    [Tooltip("✌️ 成功后保持生长的时长（秒），到点自动执行 BeginDisappear()（仅在未挂 world 时生效）")]
     public float burstDuration = 1.2f;
     [Tooltip("两次完整爆发之间的冷却（秒）")]
     public float retriggerDelay = 1.2f;
@@ -41,20 +44,20 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
     const int PINKY_MCP = 17, PINKY_PIP = 18, PINKY_DIP = 19, PINKY_TIP = 20;
 
     // —— 回调线程写 / 主线程读 —— //
-    private readonly Vector3[] leftLms  = new Vector3[21];
+    private readonly Vector3[] leftLms = new Vector3[21];
     private readonly Vector3[] rightLms = new Vector3[21];
-    private readonly object leftLock  = new object();
+    private readonly object leftLock = new object();
     private readonly object rightLock = new object();
-    private volatile bool leftValid  = false;
+    private volatile bool leftValid = false;
     private volatile bool rightValid = false;
-    private volatile bool leftNew    = false;
-    private volatile bool rightNew   = false;
+    private volatile bool leftNew = false;
+    private volatile bool rightNew = false;
 
     // —— 门控计时 —— //
     private float leftHold = 0f, rightHold = 0f;
     private float soloTimer = 0f;
     private float lastTriggerAt = -999f;
-    private bool inBurst = false;            // 一次爆发进行中（用来屏蔽重复）
+    private bool inBurst = false; // 与老逻辑兼容
 
     void Log(string s) { if (verboseLogs) Debug.Log("[Peace→Spawner] " + s); }
 
@@ -63,7 +66,7 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
         StartCoroutine(ConnectHolistic());
 
         if (!spawner)
-            Debug.LogWarning("[Peace→Spawner] 请在 Inspector 指定 TreeSpawnerOnSphere");
+            Debug.LogWarning("[Peace→Spawner] 建议仍然指定 TreeSpawnerOnSphere（用于显示/回调）");
         else
             spawner.OnAllCleared += OnSpawnerAllCleared;
     }
@@ -78,7 +81,6 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
             Log(go ? "已找到 Solution 并获取 Holistic" : "未找到 Solution（可手动拖到 Inspector）");
         }
         if (!holistic) yield break;
-
         TryRegisterCallbacks(holistic);
     }
 
@@ -98,7 +100,7 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
             }
             if (g == null) { Log("❌ 拿不到 graphRunner"); return; }
 
-            g.OnLeftHandLandmarksOutput  += OnLeft;
+            g.OnLeftHandLandmarksOutput += OnLeft;
             g.OnRightHandLandmarksOutput += OnRight;
             Log("✅ 已注册手部 landmarks 回调");
         }
@@ -130,31 +132,42 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
     void Update()
     {
         // —— 单手门控：只有“仅单手”持续 >= soloHandMinTime 才允许识别 ✌️ —— //
-        bool singleLeft  = leftValid  && !rightValid;
+        bool singleLeft = leftValid && !rightValid;
         bool singleRight = rightValid && !leftValid;
-        bool soloNow     = singleLeft || singleRight;
+        bool soloNow = singleLeft || singleRight;
         soloTimer = soloNow ? soloTimer + Time.deltaTime : 0f;
 
         if (soloTimer < soloHandMinTime) { leftHold = rightHold = 0f; return; }
 
         // —— 判定✌️（仅对当前存在的那只手） —— //
         bool leftPeace = false, rightPeace = false;
-        if (singleLeft)  { Vector3[] l; lock (leftLock)  l = (Vector3[])leftLms.Clone();  leftPeace  = IsPeace(l); }
+        if (singleLeft) { Vector3[] l; lock (leftLock) l = (Vector3[])leftLms.Clone(); leftPeace = IsPeace(l); }
         if (singleRight) { Vector3[] r; lock (rightLock) r = (Vector3[])rightLms.Clone(); rightPeace = IsPeace(r); }
 
-        leftHold  = singleLeft  && leftPeace  ? leftHold  + Time.deltaTime : 0f;
+        leftHold = singleLeft && leftPeace ? leftHold + Time.deltaTime : 0f;
         rightHold = singleRight && rightPeace ? rightHold + Time.deltaTime : 0f;
 
         bool ok = (leftHold >= holdTime) || (rightHold >= holdTime);
         if (!ok) return;
 
-        // —— Re-entrancy & 冷却 & 阶段锁 —— //
+        // —— 冷却 & 阶段锁 —— //
         if (Time.time - lastTriggerAt < retriggerDelay) return;
         if (inBurst && lockDuringPhase) return;
         if (spawner && lockDuringPhase && spawner.CurrentPhase != TreeSpawnerOnSphere.Phase.Idle) return;
 
-        // 触发一次完整爆发
         lastTriggerAt = Time.time;
+
+        // ✅ 联动：识别到 ✌️ → 通知协调器“变好”
+        if (world != null)
+        {
+            inBurst = true; // 与本地状态机兼容
+            Log("✌️ 触发 WorldHealthCoordinator.GoHealthy()");
+            world.NotifyUserAction();
+            world.GoHealthy();
+            return; // 不再执行本地爆发
+        }
+
+        // 兼容：未挂 world 时，仍用原本 BeginGrow/Disappear 爆发流程
         StartCoroutine(DoBurst());
     }
 
@@ -166,14 +179,9 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
         Log("✌️ 触发 BeginGrow()");
         spawner.BeginGrow();
 
-        // 等待一段时间后开始消失
         yield return new WaitForSeconds(Mathf.Max(0f, burstDuration));
-
         Log("✌️ 进入 BeginDisappear()");
         spawner.BeginDisappear();
-
-        // 如果你希望这里“等到全部消失再解锁”，注释掉下一行，把解锁放到 OnSpawnerAllCleared 里
-        // inBurst = false;  //（我们选择在 AllCleared 回调里解锁更稳妥）
     }
 
     void OnSpawnerAllCleared()
@@ -209,11 +217,11 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
             return (ang > angTh) && (Lmt < Lmp * 1.05f);
         }
 
-        bool indexUp  = FingerExtended(INDEX_MCP,  INDEX_PIP,  INDEX_TIP);
+        bool indexUp = FingerExtended(INDEX_MCP, INDEX_PIP, INDEX_TIP);
         bool middleUp = FingerExtended(MIDDLE_MCP, MIDDLE_PIP, MIDDLE_TIP);
-        bool ringDown  = FingerCurled(RING_MCP,  RING_PIP,  RING_TIP);
+        bool ringDown = FingerCurled(RING_MCP, RING_PIP, RING_TIP);
         bool pinkyDown = FingerCurled(PINKY_MCP, PINKY_PIP, PINKY_TIP);
-        bool thumbDown = FingerCurled(THUMB_CMC, THUMB_IP,  THUMB_TIP, 35f); // 拇指要求放宽
+        bool thumbDown = FingerCurled(THUMB_CMC, THUMB_IP, THUMB_TIP, 35f); // 拇指放宽
 
         bool ok = indexUp && middleUp && ringDown && pinkyDown && (thumbDown || true);
 
@@ -229,9 +237,9 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
     {
         if (!debugGUI) return;
         GUILayout.BeginArea(new Rect(10, 10, 420, 140), GUI.skin.box);
-        GUILayout.Label("PeaceSign → TreeSpawnerOnSphere");
+        GUILayout.Label("PeaceSign → WorldHealth");
         GUILayout.Label($"leftValid={leftValid}  rightValid={rightValid}   solo={soloTimer:0.00}/{soloHandMinTime:0.00}");
-        GUILayout.Label($"hold L/R={leftHold:0.00}/{rightHold:0.00}   burst={inBurst}   phase={(spawner? spawner.CurrentPhase.ToString() : "N/A")}");
+        GUILayout.Label($"hold L/R={leftHold:0.00}/{rightHold:0.00}   burst={inBurst}   phase={(spawner ? spawner.CurrentPhase.ToString() : "N/A")}");
         GUILayout.Label($"cooldown={Mathf.Max(0f, retriggerDelay - (Time.time - lastTriggerAt)):0.00}s");
         GUILayout.EndArea();
     }

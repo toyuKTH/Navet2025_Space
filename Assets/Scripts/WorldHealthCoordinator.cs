@@ -4,23 +4,48 @@ using UnityEngine;
 public class WorldHealthCoordinator : MonoBehaviour
 {
     [Header("Refs")]
-    public TreeSpawnerOnSphere trees;      // ÄãµÄÖÖÊ÷½Å±¾
-    public EarthColorController earth;     // ÑÕÉ«¿ØÖÆ½Å±¾£¨º¬ IsAnimating£©
+    public TreeSpawnerOnSphere trees;      // ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½Õ¿ï¿½ï¿½ï¿½
+    public EarthColorController earth;     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½Æ£ï¿½ï¿½èº¬ IsAnimating / durationï¿½ï¿½
 
     [Header("Behavior")]
-    public bool interruptRunningFlow = true; // ÕıÔÚ¹ı¶ÉÊ±ÔÙ´Îµ÷ÓÃÊÇ·ñ´ò¶ÏÖØÀ´
-    public float extraEarthWait = 0.1f;      // ±£ÏÕµÈ´ı£¬±ÜÃâ±ß½çÖ¡
+    [Tooltip("ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½Ê±ï¿½Ù´Îµï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    public bool interruptRunningFlow = true;
+    [Tooltip("ï¿½ï¿½ï¿½ÕµÈ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½Ö¡ï¿½ï¿½ï¿½ë£©")]
+    public float extraEarthWait = 0.1f;
+
+    [Header("Anti-flap / ï¿½ï¿½ï¿½ï¿½")]
+    [Tooltip("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªÖ®ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë£©ï¿½ï¿½ï¿½ï¿½ï¿½Ì»ï¿½ï¿½ï¿½ï¿½")]
+    public float minInterval = 0.0f;
 
     Coroutine flow;
+    float lastTransitionAt = -999f;
+
+    [Header("Idle Auto-Recover")]
+    [Tooltip("è¶…è¿‡è¯¥ç§’æ•°æœªæ”¶åˆ°ä»»ä½•ç”¨æˆ·åŠ¨ä½œï¼Œå°†è‡ªåŠ¨è§¦å‘ GoHealthy()")] public float idleToHealthySeconds = 5f;
+    public bool enableIdleAutoHealthy = true;
+    float lastActionAt = -999f;
+    bool idleTriggered = false;
+    bool earthIsHealthy = true; // è·Ÿè¸ªåœ°çƒé¢œè‰²æ˜¯å¦å¤„äºâ€œæ­£å¸¸/å¥åº·â€æ€
+
     public enum Mode { Healthy, Depleted, Transitioning }
     public Mode Current { get; private set; } = Mode.Healthy;
 
-    // ¡ª¡ª ¶ÔÍâÖ»±©Â¶Á½¸ö·½·¨ ¡ª¡ª
-    public void GoHealthy() { StartFlow(FlowHealthy()); }   // ±äºÃ£ºÊ÷Çå¿Õ¡úµØÇò»Ö¸´¡úÔÙÖÖ
-    public void GoDepleted() { StartFlow(FlowDepleted()); }  // ±ä»µ£ºÊ÷Çå¿Õ¡úµØÇò¿İ½ß
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ //
+    public void GoHealthy() { StartFlow(FlowHealthy()); }   // ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½Õ¡ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    public void GoDepleted() { StartFlow(FlowDepleted()); }  // ï¿½ä»µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¡ï¿½ï¿½ï¿½ï¿½ï¿½İ½ï¿½
+
+    // å¤–éƒ¨ä¸ŠæŠ¥ï¼šç”¨æˆ·å‘ç”Ÿäº†ä¸€ä¸ªæœ‰æ•ˆåŠ¨ä½œï¼ˆæŒ¥æ‰‹ã€æ¯”è€¶ç­‰ï¼‰
+    public void NotifyUserAction()
+    {
+        lastActionAt = Time.time;
+        idleTriggered = false; // é‡ç½®ä¸€æ¬¡æ€§è§¦å‘é—¨æ§
+    }
 
     void StartFlow(IEnumerator co)
     {
+        if (Time.time - lastTransitionAt < minInterval) return;
+        lastTransitionAt = Time.time;
+
         if (flow != null)
         {
             if (!interruptRunningFlow) return;
@@ -28,6 +53,7 @@ public class WorldHealthCoordinator : MonoBehaviour
         }
         flow = StartCoroutine(Run(co));
     }
+
     IEnumerator Run(IEnumerator co)
     {
         Current = Mode.Transitioning;
@@ -35,51 +61,97 @@ public class WorldHealthCoordinator : MonoBehaviour
         flow = null;
     }
 
-    // ========== Á÷³Ì£º±ä»µ ==========
+    void Start()
+    {
+        lastActionAt = Time.time;
+        StartCoroutine(IdleWatchdog());
+    }
+
+    IEnumerator IdleWatchdog()
+    {
+        var wait = new WaitForSeconds(0.2f);
+        while (true)
+        {
+            if (enableIdleAutoHealthy && !idleTriggered && Time.time - lastActionAt >= idleToHealthySeconds)
+            {
+                GoHealthy();
+                idleTriggered = true; // é¿å…åœ¨ä¸‹ä¸€å¸§å†æ¬¡è§¦å‘ï¼Œç›´åˆ°æ”¶åˆ°æ–°çš„åŠ¨ä½œ
+            }
+            yield return wait;
+        }
+    }
+
+    // ========== ï¿½ä»µ ========== //
     IEnumerator FlowDepleted()
     {
-        // 1) Í£Ö¹ĞÂÔö£¬Çå¿ÕÊ÷
-        trees.BeginDisappear();
-        if (!trees.AllCleared)
+        // 1) è‹¥å½“å‰æœ‰æ ‘ï¼Œåˆ™é€æ¸æ¸…é™¤ï¼›å¦‚æœå·²ç»æ²¡æœ‰æ ‘ï¼Œåˆ™ä¸åšæ— è°“æ“ä½œ
+        if (trees != null && !trees.AllCleared)
         {
             trees.BeginDisappear();
-            yield return new WaitUntil(() => trees.AllCleared);
+            if (!trees.AllCleared)
+            {
+                yield return new WaitUntil(() => trees.AllCleared);
+            }
         }
 
-        // 2) µØÇò±ä»µ£¨À¶->×Ï, ÂÌ->»Æ£©
-        earth.Deplete();
-        yield return WaitEarthDone();
+        // 2) ï¿½ï¿½ï¿½ï¿½ä»µ
+        if (earth != null)
+        {
+            earth.Deplete();
+            yield return WaitEarthDone();
+        }
 
+        earthIsHealthy = false;
         Current = Mode.Depleted;
     }
 
-    // ========== Á÷³Ì£º±äºÃ ==========
+    // ========== ï¿½ï¿½ï¿½ ========== //
     IEnumerator FlowHealthy()
     {
-        // 1) Í£Ö¹ĞÂÔö£¬Çå¿ÕÊ÷£¨±£³Ö¹æÔòÒ»ÖÂ£©
-        trees.BeginDisappear();
-        if (!trees.AllCleared)
+        // è‹¥åœ°çƒå·²å¤„äºå¥åº·é¢œè‰²ï¼šä¸æ¸…æ ‘ã€ä¸æ¢å¤é¢œè‰²ï¼Œç›´æ¥ä¿æŒ/ç»§ç»­é•¿æ ‘
+        if (earthIsHealthy)
         {
-            trees.BeginDisappear();
-            yield return new WaitUntil(() => trees.AllCleared);
+            if (trees != null)
+            {
+                trees.BeginGrow();
+            }
+            Current = Mode.Healthy;
+            yield break;
         }
 
-        // 2) µØÇò»Ö¸´
-        earth.Recover();
-        yield return WaitEarthDone();
+        // 1) åœ°çƒæœªå¥åº·æ—¶ï¼Œå…ˆä¿è¯æŠŠç°æœ‰çš„æ ‘æ¸…ç†å¹²å‡€
+        if (trees != null && !trees.AllCleared)
+        {
+            trees.BeginDisappear();
+            if (!trees.AllCleared)
+            {
+                yield return new WaitUntil(() => trees.AllCleared);
+            }
+        }
 
-        // 3) ÔÙ¿ªÊ¼ÖÖÊ÷
-        trees.BeginGrow();
+        // 2) ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½
+        if (earth != null)
+        {
+            earth.Recover();
+            yield return WaitEarthDone();
+        }
+
+        earthIsHealthy = true;
+
+        // 3) ï¿½Ù¿ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½
+        if (trees != null)
+        {
+            trees.BeginGrow();
+        }
 
         Current = Mode.Healthy;
     }
 
-    // µØÇòÑÕÉ«¶¯»­µÈ´ı£¨ÓÅÏÈÓÃ IsAnimating£»Ã»ÓĞ¾Í°´Ê±³¤µÈ£©
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IsAnimatingï¿½ï¿½Ã»ï¿½Ğ¾Í°ï¿½ duration ï¿½È£ï¿½
     IEnumerator WaitEarthDone()
     {
         if (earth != null)
         {
-            // Èç¹ûÄã°´ÎÒÖ®Ç°µÄ¸Ä·¨£¬EarthColorController ÓĞ IsAnimating
             float safety = earth.duration + extraEarthWait;
             float t = 0f;
             while (earth.IsAnimating && t < safety)
