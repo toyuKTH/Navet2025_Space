@@ -106,7 +106,8 @@ public class GenerativeAmbientMidi : MonoBehaviour
             var t = tracks[i];
             if (t == null) continue;
             float per = (i < trackGains01.Length) ? Mathf.Clamp01(trackGains01[i]) : 1f;
-            t.SetMasterGain01(masterVolume01 * per, 0.08f);
+            // 直接通过 CC7 发送通道音量
+            t.SendVolumeCC01(masterVolume01 * per, 0.08f);
             t.SetExpression01(1f); // 拉起 CC11，避免音源静音
         }
     }

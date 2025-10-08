@@ -649,6 +649,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1669871168}
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1669871172}
   m_SourcePrefab: {fileID: 100100000, guid: 8186fbba21e8a684287d265866f01822, type: 3}
 --- !u!4 &117474158 stripped
 Transform:
@@ -903,6 +906,13 @@ MonoBehaviour:
   boostIdle: 0.3
   boostLoud: 0.9
   volumeFade: 0.15
+  ambientBaseVolume01: 0
+  ambientIntensityWeight: 1
+  waveMidi7DownDelta: 0.4
+  waveAmbientUpDelta: 0.25
+  victoryMidi7UpDelta: 0.4
+  victoryAmbientDownDelta: 0.3
+  victoryHoldSeconds: 1.2
   waveHangTime: 0.4
   debugGUI: 1
   verboseLogs: 1
@@ -1161,7 +1171,7 @@ MonoBehaviour:
   interruptRunningFlow: 1
   extraEarthWait: 0.1
   minInterval: 0
-  idleToHealthySeconds: 10
+  idleToHealthySeconds: 15
   enableIdleAutoHealthy: 1
   healthyBlendThreshold: 0.02
 --- !u!1001 &199158445
@@ -2273,7 +2283,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1984442941}
   m_SourcePrefab: {fileID: 100100000, guid: 8186fbba21e8a684287d265866f01822, type: 3}
 --- !u!4 &386579558 stripped
 Transform:
@@ -2965,11 +2978,17 @@ MonoBehaviour:
   mediaTracker: {fileID: 275874969}
   panelController: {fileID: 538391958}
   mainPlanetPanel: {fileID: 973125975}
+  midi7: {fileID: 1424351756}
+  midi7MainVolume01: 0.9
+  midi7OtherBase01: 0
+  ambientOtherBase01: 0.6
+  audioFadeSeconds: 0.25
   cameraAnimator: {fileID: 1264297884}
   backTriggerName: BackToMain
   backAnimationDelay: 3
   soundPlayer: {fileID: 0}
   fistGestureSound: {fileID: 0}
+  world: {fileID: 0}
   gestureHoldDuration: 1
   requiredStableFrames: 3
   cooldownSeconds: 3
@@ -3172,6 +3191,13 @@ MonoBehaviour:
   boostIdle: 0.3
   boostLoud: 0.9
   volumeFade: 0.15
+  ambientBaseVolume01: 0
+  ambientIntensityWeight: 1
+  waveMidi7DownDelta: 0.4
+  waveAmbientUpDelta: 0.25
+  victoryMidi7UpDelta: 0.4
+  victoryAmbientDownDelta: 0.3
+  victoryHoldSeconds: 1.2
   waveHangTime: 0.4
   debugGUI: 1
   verboseLogs: 1
@@ -3508,6 +3534,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   current: {fileID: 973125975}
   showDebugLog: 1
+--- !u!1 &542049953
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 542049954}
+  - component: {fileID: 542049955}
+  m_Layer: 0
+  m_Name: Onboarding Ani
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &542049954
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 542049953}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -26.288826, y: -17.074314, z: 127.7}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1264297881}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!111 &542049955
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 542049953}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 0}
+  m_Animations: []
+  m_WrapMode: 0
+  m_PlayAutomatically: 1
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1001 &557729160
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3599,6 +3672,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Rock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 1780893571593388, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4834474408796258, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
       propertyPath: m_LocalScale.x
       value: 150
@@ -3655,6 +3732,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 23809168408301478, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: d60cc8ca4c975a04fb05be90fc0539f8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4355,8 +4436,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugLogs: 1
   midiOutName: VMIDI5
-  channel: 0
-  volumeCC: 11
+  channel: 5
+  volumeCC: 7
   targetVolume: 110
   fadeInSeconds: 1.5
   fadeOutSeconds: 1.2
@@ -4972,7 +5053,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8571076842338426121, guid: 140d1d2c406167c50819d89f86d9092e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8571076842338426122, guid: 140d1d2c406167c50819d89f86d9092e, type: 3}
       propertyPath: m_Camera
@@ -6126,7 +6207,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tracks:
-  - {fileID: 785550052}
+  - {fileID: 1595255635}
   baseBpm: 60
   tempoMultiplier: 1
   swing: 0
@@ -6298,6 +6379,13 @@ MonoBehaviour:
   boostIdle: 0.3
   boostLoud: 0.9
   volumeFade: 0.15
+  ambientBaseVolume01: 0
+  ambientIntensityWeight: 1
+  waveMidi7DownDelta: 0.4
+  waveAmbientUpDelta: 0.25
+  victoryMidi7UpDelta: 0.4
+  victoryAmbientDownDelta: 0.3
+  victoryHoldSeconds: 1.2
   waveHangTime: 0.4
   debugGUI: 1
   verboseLogs: 1
@@ -7852,6 +7940,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1095570515}
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1095570525}
   m_SourcePrefab: {fileID: 100100000, guid: 8186fbba21e8a684287d265866f01822, type: 3}
 --- !u!4 &1095570511 stripped
 Transform:
@@ -7891,8 +7982,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfa234806bc3c8f42976f00e10d9588e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  earthRenderer: {fileID: 0}
-  duration: 5
+  earthRenderer: {fileID: 1095570522}
+  duration: 8
   curve:
     serializedVersion: 2
     m_Curve:
@@ -7930,16 +8021,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holistic: {fileID: 275874969}
-  world: {fileID: 0}
+  world: {fileID: 198213108}
   spawner: {fileID: 670025098}
   burstDuration: 1.2
   retriggerDelay: 1.2
   lockDuringPhase: 1
   holdTime: 0.2
-  soloHandMinTime: 0.25
+  soloHandMinTime: 0.2
   debugGUI: 1
   verboseLogs: 1
   shaking: {fileID: 1915102962}
+--- !u!23 &1095570522 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2364224, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+  m_PrefabInstance: {fileID: 1095570510}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1095570525
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 578018887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e51d7dbdcd18d72418cf7b9d614a6f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  axis: {x: 0, y: 1, z: 1}
+  speed: 3
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1001 &1104923191
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8063,7 +8175,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tracks:
-  - {fileID: 1753195118}
+  - {fileID: 646201872}
   baseBpm: 60
   tempoMultiplier: 1
   swing: 0
@@ -8148,11 +8260,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 480232, guid: 035306f61d30cec478039fb39067be1e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -168
+      value: -67
       objectReference: {fileID: 0}
     - target: {fileID: 480232, guid: 035306f61d30cec478039fb39067be1e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -220
+      value: -131
       objectReference: {fileID: 0}
     - target: {fileID: 480232, guid: 035306f61d30cec478039fb39067be1e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8952,6 +9064,74 @@ RectTransform:
   m_AnchoredPosition: {x: 50.141003, y: 33.50143}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1253328244
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1253328245}
+  - component: {fileID: 1253328246}
+  m_Layer: 0
+  m_Name: AmbientGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1253328245
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1253328244}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145538756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1253328246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1253328244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cab2ca8f36ae65478ad0ab5aa50e8d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tracks:
+  - {fileID: 1424351756}
+  baseBpm: 60
+  tempoMultiplier: 1
+  swing: 0
+  swingAmount: 0.12
+  rootMidi: 60
+  scaleSemis: 0000000002000000030000000500000007000000090000000a000000
+  lowOctave: -2
+  highOctave: 1
+  noteDensity: 0.35
+  lengthBeatsRange: {x: 0.25, y: 1.5}
+  velocityRange: {x: 70, y: 110}
+  enablePads: 1
+  padEveryBeats: 8
+  chordSizeRange: {x: 2, y: 4}
+  padLengthBeatsRange: {x: 2, y: 8}
+  timeJitterMs: 12
+  seed: 12345
+  masterVolume01: 0.7
+  masterTempoMult: 1
+  trackGains01: []
+  autoEnableTracksOnEnable: 1
+  autoDisableTracksOnDisable: 1
 --- !u!1 &1264297878
 GameObject:
   m_ObjectHideFlags: 0
@@ -9040,10 +9220,11 @@ Transform:
   m_GameObject: {fileID: 1264297878}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: -17, z: -18.7}
+  m_LocalPosition: {x: 10.2, y: -7.7, z: -18.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 542049954}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -11.454, y: -52.52, z: -3.574}
 --- !u!111 &1264297883
@@ -9209,7 +9390,7 @@ MonoBehaviour:
   interruptRunningFlow: 1
   extraEarthWait: 0.1
   minInterval: 0
-  idleToHealthySeconds: 10
+  idleToHealthySeconds: 15
   enableIdleAutoHealthy: 1
   healthyBlendThreshold: 0.02
 --- !u!1 &1299390437
@@ -9272,15 +9453,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 474474, guid: bbd167bc0adbc1e4687062041c1d592a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 151
+      value: 309
       objectReference: {fileID: 0}
     - target: {fileID: 474474, guid: bbd167bc0adbc1e4687062041c1d592a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1
+      value: 99
       objectReference: {fileID: 0}
     - target: {fileID: 474474, guid: bbd167bc0adbc1e4687062041c1d592a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 194
+      value: 438
       objectReference: {fileID: 0}
     - target: {fileID: 474474, guid: bbd167bc0adbc1e4687062041c1d592a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -9586,6 +9767,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1326663028}
+    - targetCorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1326663034}
   m_SourcePrefab: {fileID: 100100000, guid: 8186fbba21e8a684287d265866f01822, type: 3}
 --- !u!4 &1326663023 stripped
 Transform:
@@ -9631,7 +9815,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   earthRenderer: {fileID: 1326663025}
-  duration: 5
+  duration: 8
   curve:
     serializedVersion: 2
     m_Curve:
@@ -9669,16 +9853,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holistic: {fileID: 275874969}
-  world: {fileID: 0}
+  world: {fileID: 1294893006}
   spawner: {fileID: 1722904695}
   burstDuration: 1.2
   retriggerDelay: 1.2
   lockDuringPhase: 1
   holdTime: 0.2
-  soloHandMinTime: 0.25
+  soloHandMinTime: 0.2
   debugGUI: 1
   verboseLogs: 1
   shaking: {fileID: 1746754595}
+--- !u!114 &1326663034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 794356974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e51d7dbdcd18d72418cf7b9d614a6f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  axis: {x: 0, y: 1, z: 1}
+  speed: 3
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1001 &1334974596
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9954,8 +10154,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugLogs: 1
   midiOutName: VMIDI6
-  channel: 0
-  volumeCC: 11
+  channel: 6
+  volumeCC: 7
   targetVolume: 110
   fadeInSeconds: 1.5
   fadeOutSeconds: 1.2
@@ -10697,15 +10897,15 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1424351754}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d379f79c3021fbe478b2460c9e8b40cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   debugLogs: 1
   midiOutName: VMIDI7
-  channel: 0
-  volumeCC: 11
+  channel: 7
+  volumeCC: 7
   targetVolume: 110
   fadeInSeconds: 1.5
   fadeOutSeconds: 1.2
@@ -10773,7 +10973,7 @@ MonoBehaviour:
   interruptRunningFlow: 1
   extraEarthWait: 0.1
   minInterval: 0
-  idleToHealthySeconds: 10
+  idleToHealthySeconds: 15
   enableIdleAutoHealthy: 1
   healthyBlendThreshold: 0.02
 --- !u!1 &1437740983
@@ -10892,11 +11092,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 441010, guid: 33c609aee83f34645809d2bda602247a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 372
+      value: 621
       objectReference: {fileID: 0}
     - target: {fileID: 441010, guid: 33c609aee83f34645809d2bda602247a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -374
+      value: -319
       objectReference: {fileID: 0}
     - target: {fileID: 441010, guid: 33c609aee83f34645809d2bda602247a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -11121,6 +11321,13 @@ MonoBehaviour:
   boostIdle: 0.3
   boostLoud: 0.9
   volumeFade: 0.15
+  ambientBaseVolume01: 0
+  ambientIntensityWeight: 1
+  waveMidi7DownDelta: 0.4
+  waveAmbientUpDelta: 0.25
+  victoryMidi7UpDelta: 0.4
+  victoryAmbientDownDelta: 0.3
+  victoryHoldSeconds: 1.2
   waveHangTime: 0.4
   debugGUI: 1
   verboseLogs: 1
@@ -11600,7 +11807,7 @@ MonoBehaviour:
   stormRetriggerDelay: 0.6
   stormHoldTime: 0.6
   storm: {fileID: 1868417576}
-  stageManager: {fileID: 0}
+  stageManager: {fileID: 2143343883}
   sendContinuousToMIDI: 1
   midiPitch01: 0.5
   midiRate01: 0.5
@@ -11651,6 +11858,13 @@ MonoBehaviour:
   boostIdle: 0.3
   boostLoud: 0.9
   volumeFade: 0.15
+  ambientBaseVolume01: 0
+  ambientIntensityWeight: 1
+  waveMidi7DownDelta: 0.4
+  waveAmbientUpDelta: 0.25
+  victoryMidi7UpDelta: 0.4
+  victoryAmbientDownDelta: 0.3
+  victoryHoldSeconds: 1.2
   waveHangTime: 0.4
   debugGUI: 1
   verboseLogs: 1
@@ -12006,8 +12220,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugLogs: 1
   midiOutName: VMIDI4
-  channel: 0
-  volumeCC: 11
+  channel: 4
+  volumeCC: 7
   targetVolume: 110
   fadeInSeconds: 1.5
   fadeOutSeconds: 1.2
@@ -12318,7 +12532,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   earthRenderer: {fileID: 1669871165}
-  duration: 5
+  duration: 8
   curve:
     serializedVersion: 2
     m_Curve:
@@ -12356,16 +12570,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holistic: {fileID: 275874969}
-  world: {fileID: 0}
+  world: {fileID: 1433556780}
   spawner: {fileID: 1186483395}
   burstDuration: 1.2
   retriggerDelay: 1.2
   lockDuringPhase: 1
   holdTime: 0.2
-  soloHandMinTime: 0.25
-  debugGUI: 1
+  soloHandMinTime: 0.2
+  debugGUI: 0
   verboseLogs: 1
   shaking: {fileID: 1549477485}
+--- !u!114 &1669871172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1669871163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e51d7dbdcd18d72418cf7b9d614a6f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  axis: {x: 0, y: 1, z: 1}
+  speed: 3
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!1 &1690396958 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 137650, guid: 826b6a0b570e8460990010fa615b5a2a, type: 3}
@@ -12513,6 +12743,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 23809168408301478, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: a0015891d15430a46aa5eea3d209c07b, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12591,6 +12825,10 @@ PrefabInstance:
     - target: {fileID: 1780893571593388, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
       propertyPath: m_Name
       value: Rock_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1780893571593388, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4834474408796258, guid: 7a6a0a8686bba3043bcf6b5e12a5fd94, type: 3}
       propertyPath: m_LocalScale.x
@@ -12961,6 +13199,13 @@ MonoBehaviour:
   boostIdle: 0.3
   boostLoud: 0.9
   volumeFade: 0.15
+  ambientBaseVolume01: 0
+  ambientIntensityWeight: 1
+  waveMidi7DownDelta: 0.4
+  waveAmbientUpDelta: 0.25
+  victoryMidi7UpDelta: 0.4
+  victoryAmbientDownDelta: 0.3
+  victoryHoldSeconds: 1.2
   waveHangTime: 0.4
   debugGUI: 1
   verboseLogs: 1
@@ -13902,11 +14147,11 @@ MonoBehaviour:
   stormRetriggerDelay: 0.6
   stormHoldTime: 0.6
   storm: {fileID: 1678892}
-  stageManager: {fileID: 0}
-  sendContinuousToMIDI: 1
+  stageManager: {fileID: 2143343883}
+  sendContinuousToMIDI: 0
   midiPitch01: 0.5
   midiRate01: 0.5
-  midiMelody: {fileID: 0}
+  midiMelody: {fileID: 267165909}
   triggerNoteOnChange: 1
   baseNote: 60
   noteRange: 12
@@ -13953,6 +14198,13 @@ MonoBehaviour:
   boostIdle: 0.3
   boostLoud: 0.9
   volumeFade: 0.15
+  ambientBaseVolume01: 0
+  ambientIntensityWeight: 1
+  waveMidi7DownDelta: 0.4
+  waveAmbientUpDelta: 0.25
+  victoryMidi7UpDelta: 0.4
+  victoryAmbientDownDelta: 0.3
+  victoryHoldSeconds: 1.2
   waveHangTime: 0.4
   debugGUI: 1
   verboseLogs: 1
@@ -14449,6 +14701,27 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1 &1984442937 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 186268, guid: 8186fbba21e8a684287d265866f01822, type: 3}
+  m_PrefabInstance: {fileID: 386579557}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1984442941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1984442937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e51d7dbdcd18d72418cf7b9d614a6f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  axis: {x: 0, y: 1, z: 1}
+  speed: 3
+  useGlobalClock: 1
+  phaseOffsetDeg: 0
 --- !u!114 &2018986072 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5158692485282053138, guid: 140d1d2c406167c50819d89f86d9092e, type: 3}
@@ -15338,6 +15611,13 @@ MonoBehaviour:
   boostIdle: 0.3
   boostLoud: 0.9
   volumeFade: 0.15
+  ambientBaseVolume01: 0
+  ambientIntensityWeight: 1
+  waveMidi7DownDelta: 0.4
+  waveAmbientUpDelta: 0.25
+  victoryMidi7UpDelta: 0.4
+  victoryAmbientDownDelta: 0.3
+  victoryHoldSeconds: 1.2
   waveHangTime: 0.4
   debugGUI: 1
   verboseLogs: 1
@@ -15502,7 +15782,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2143343883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15566,7 +15846,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2145538756}
   m_Layer: 0
-  m_Name: MIDI Group
+  m_Name: Earth Sound
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15586,6 +15866,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1424351755}
+  - {fileID: 1253328245}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807

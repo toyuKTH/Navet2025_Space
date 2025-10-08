@@ -6,6 +6,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Common;
 
+[DefaultExecutionOrder(-100)]
 public class SonificationMelody : MonoBehaviour
 {
     [Header("Debug")]
@@ -77,13 +78,20 @@ public class SonificationMelody : MonoBehaviour
 
     void OnDisable()
     {
-        if (outDev == null) return;
-
         if (fadeCo != null) { StopCoroutine(fadeCo); fadeCo = null; }
         if (ctrlCo != null) { StopCoroutine(ctrlCo); ctrlCo = null; }
 
-        StartCoroutine(FadeOutThenAllNotesOff());
-        Log("OnDisable：开始淡出并清音");
+        // 禁用时不要再开启协程，直接同步清音并拉低音量
+        if (outDev != null)
+        {
+            // 先关延音踏板，避免宿主仍然挂音
+            SendCC(64, 0);
+            // 再把通道音量拉到 0
+            SendCC(volumeCC, 0);
+            currentVolume = 0;
+            AllNotesOff();
+        }
+        Log("OnDisable：直接清音并把音量置 0");
     }
 
     void OnDestroy()
@@ -101,13 +109,42 @@ public class SonificationMelody : MonoBehaviour
         fadeCo = StartCoroutine(FadeVolumeTo(targetVolume, Mathf.Max(0.001f, fadeSeconds)));
     }
 
+    // 新增：直接发送 CC7（通道音量），可选淡入时长；不依赖 SetMasterGain01
+    public void SendVolumeCC01(float v01, float fadeSeconds = 0f)
+    {
+        v01 = Mathf.Clamp01(v01);
+        int tgt = Mathf.RoundToInt(v01 * 127f);
+        if (outDev == null)
+        {
+            Log("SendVolumeCC01 失败：无输出设备");
+            return;
+        }
+        // 若 GameObject 未激活或组件未启用，不能开启协程：改为直接发送
+        if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
+        {
+            SendCC(volumeCC, tgt);
+            currentVolume = tgt;
+            return;
+        }
+        if (fadeSeconds <= 0.001f)
+        {
+            SendCC(volumeCC, tgt);
+            currentVolume = tgt;
+        }
+        else
+        {
+            if (fadeCo != null) StopCoroutine(fadeCo);
+            fadeCo = StartCoroutine(FadeVolumeTo(tgt, Mathf.Max(0.001f, fadeSeconds)));
+        }
+    }
+
     public void SetExpression01(float v01)
     {
         // CC11，一些音源用它做“细音量”
         int val = Mathf.RoundToInt(Mathf.Clamp01(v01) * 127f);
         SendCC(11, val);
     }
-
+    
 
 
     // ===== 连续控制（PB/CC） =====
@@ -221,7 +258,8 @@ public class SonificationMelody : MonoBehaviour
 
     IEnumerator NoteOffLater(int note, float seconds)
     {
-        yield return new WaitForSeconds(seconds);
+        // 使用实时时间，避免 Time.timeScale==0 时 NoteOff 不触发
+        yield return new WaitForSecondsRealtime(seconds);
         SendNoteOff(note);
         onNotes.Remove(note);
         Log($"NoteOff {note}");

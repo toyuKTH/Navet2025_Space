@@ -71,6 +71,44 @@ public class Shaking : MonoBehaviour
     public TrackScale[] perTrackScales = Array.Empty<TrackScale>();
     public int localTransposeSemis = 0;
 
+    // ====== 新增：基于手部抖动的“挥手”状态 + 音量路由 ======
+    [Header("MIDI7 路由（挥手降、停挥/✌️升）")]
+    [Tooltip("指向输出设备名为 'MIDI7' 的 SonificationMelody（其 midiOutName= \"MIDI7\"）")]
+    public SonificationMelody midi7;             // 目标：虚拟MIDI接口 MIDI7
+    [Tooltip("挥手时要被增大的另一条 MIDI（在 Inspector 里拖一个 SonificationMelody）")]
+    public SonificationMelody waveBoostTarget;   // 另一路，在挥手时放大
+
+    [Header("MIDI 音量参数")]
+    [Range(0f, 1f)] public float midi7Loud = 0.90f;   // 非挥手/胜利时 MIDI7 音量（大）
+    [Range(0f, 1f)] public float midi7Quiet = 0.18f;  // 挥手时 MIDI7 音量（小）
+    [Range(0f, 1f)] public float boostIdle = 0.30f;   // 非挥手/胜利时 另一条音量（小）
+    [Range(0f, 1f)] public float boostLoud = 0.90f;   // 挥手时 另一条音量（大）
+    [Tooltip("音量变化淡入淡出时长（秒）")]
+    public float volumeFade = 0.15f;
+
+    [Header("Ambient 基线与权重（用于与面板状态叠加）")]
+    [Range(0f, 1f)] public float ambientBaseVolume01 = 0f;   // 面板/系统设置的基线
+    [Range(0f, 1f)] public float ambientIntensityWeight = 1f; // 叠加强度（原先是 t）
+
+    [Header("相对偏移（在基线上叠加）")]
+    [Tooltip("挥手时 MIDI7 在基线上的下压量（0..1）")]
+    [Range(0f, 1f)] public float waveMidi7DownDelta = 0.40f;
+    [Tooltip("挥手时 Ambient 在基线上的上浮量（0..1）")]
+    [Range(0f, 1f)] public float waveAmbientUpDelta = 0.25f;
+    [Tooltip("Victory 时 MIDI7 在基线上的上浮量（0..1），短暂保持")]
+    [Range(0f, 1f)] public float victoryMidi7UpDelta = 0.40f;
+    [Tooltip("Victory 时 Ambient 在基线上的下压量（0..1），短暂保持")]
+    [Range(0f, 1f)] public float victoryAmbientDownDelta = 0.30f;
+    [Tooltip("Victory 偏移保持时长（秒）")]
+    public float victoryHoldSeconds = 1.20f;
+
+    [Header("挥手判定（沿用Δdistance，挂起判定一段时间）")]
+    [Tooltip("当 |Δdistance| 超阈值被判定为“刚发生挥手”，在这段持续时间内都算挥手中")]
+    public float waveHangTime = 0.40f;
+
+    private float lastWaveAt = -999f;
+    private bool isWaving = false;
+    
     // ===== 调试 =====
     [Header("调试")]
     public bool debugGUI = true;
@@ -104,6 +142,12 @@ public class Shaking : MonoBehaviour
     private float nextSummaryAt = 0f;
     private string lastEarlyExit = "";
     private bool _tracksOpenedOnce = false;
+
+    // 基线 / 目标管理
+    private float baselineMidi7Volume01 = 0.5f; // 由外部面板切换时设置
+    private float lastAppliedMidi7 = -1f;
+    private float lastAppliedAmbient = -1f;
+    private float victoryBoostUntil = -999f;
 
     // 手部关键点索引
     const int WRIST = 0;
@@ -230,10 +274,19 @@ public class Shaking : MonoBehaviour
     // ============== 主线程：打时间戳 + 计算缩放 + Storm/MIDI ==============
     void Update()
     {
+        if (!gameObject.activeInHierarchy) return; // 不要在隐藏/非激活时写音量
         if (Input.GetKeyDown(snapshotKey)) DumpSnapshot("手动快照");
 
         if (leftNew) { leftTime = Time.time; leftNew = false; }
         if (rightNew) { rightTime = Time.time; rightNew = false; }
+
+        // Victory 优先：在 Victory 短暂保持期间禁用 Shaking（避免同时触发）
+        if (Time.time < victoryBoostUntil)
+        {
+            EarlyExit("Victory 持续窗口，暂停 Shaking");
+            ResetVisualAndStorm();
+            return;
+        }
 
         // 条件不满足：回正 + Storm 关闭 + 不发 MIDI
         if (!(leftValid && rightValid))
@@ -294,6 +347,7 @@ public class Shaking : MonoBehaviour
                 world.NotifyUserAction();
                 world.GoDepleted();
             }
+            lastWaveAt = Time.time; // 更新挥手时间戳
         }
 
         // ===== 连续控制（MIDIStageManager）=====
@@ -334,9 +388,38 @@ public class Shaking : MonoBehaviour
 
         if (ambient != null)
         {
-            ambient.SetVolume01(t);
+            // Ambient 体感映射 = 基线 + t * 权重，再叠加挥手/Victory 偏移
+            float extraWaveAmbient = isWaving ? waveAmbientUpDelta : 0f;
+            float extraVictoryAmbient = (Time.time < victoryBoostUntil) ? (-victoryAmbientDownDelta) : 0f;
+            float ambTarget = Mathf.Clamp01(ambientBaseVolume01 + ambientIntensityWeight * t + extraWaveAmbient + extraVictoryAmbient);
+            if (Mathf.Abs(ambTarget - lastAppliedAmbient) > 0.004f){
+                ambient.SetVolume01(ambTarget); // ✅ 用同一条淡入淡出时长
+                lastAppliedAmbient = ambTarget;
+            }
             ambient.SetTempoMultiplier(0.5f + 1.5f * midiRate01);
         }
+
+        // ===== 新增：挥手状态机（基于 lastWaveAt 的挂起时间）=====
+        bool wavingNow = (Time.time - lastWaveAt) <= waveHangTime;
+        if (wavingNow != isWaving)
+        {
+            isWaving = wavingNow;
+            ApplyGestureVolumes(isWaving);
+        }
+
+        // 连续维护 MIDI7 目标（基线 ± 挥手偏移 ± Victory 短暂偏移）
+        if (midi7 != null)
+        {
+            float extraWaveMidi7 = isWaving ? (-waveMidi7DownDelta) : 0f;
+            float extraVictoryMidi7 = (Time.time < victoryBoostUntil) ? (victoryMidi7UpDelta) : 0f;
+            float midi7Target = Mathf.Clamp01(baselineMidi7Volume01 + extraWaveMidi7 + extraVictoryMidi7);
+            if (Mathf.Abs(midi7Target - lastAppliedMidi7) > 0.004f)
+            {
+                midi7.SendVolumeCC01(midi7Target, volumeFade);
+                lastAppliedMidi7 = midi7Target;
+            }
+        }
+
 
         // 汇总日志
         if (Time.time >= nextSummaryAt)
@@ -464,4 +547,51 @@ public class Shaking : MonoBehaviour
             t.PlayNote(n, vel, dur);
         }
     }
+
+    // 把体感状态映射到 MIDI7 / waveBoostTarget 的音量
+    void ApplyGestureVolumes(bool waving)
+    {
+        // 基线 + 挥手/胜利相对偏移
+        float extraWaveMidi7 = waving ? (-waveMidi7DownDelta) : 0f;
+        float extraVictoryMidi7 = (Time.time < victoryBoostUntil) ? (victoryMidi7UpDelta) : 0f;
+        float midi7Target = Mathf.Clamp01(baselineMidi7Volume01 + extraWaveMidi7 + extraVictoryMidi7);
+
+        float boostTarget = waving ? boostLoud : boostIdle;
+        if (midi7 != null) midi7.SendVolumeCC01(midi7Target, volumeFade);
+        if (waveBoostTarget != null) waveBoostTarget.SendVolumeCC01(boostTarget, volumeFade);
+        lastAppliedMidi7 = midi7Target;
+
+        Log($"[MIDI路由] waving={waving} baseline={baselineMidi7Volume01:0.00} midi7->{midi7Target:0.00} other->{boostTarget:0.00}");
+    }
+
+    // ✌️胜利（Peace/Victory）时，强制回到“非挥手”的大音量场景
+    public void OnVictoryGesture()
+    {
+        // 立刻停止挥手并短暂提升 MIDI7 / 下压 Ambient
+        lastWaveAt = -999f;
+        isWaving = false;
+        victoryBoostUntil = Time.time + Mathf.Max(0.01f, victoryHoldSeconds);
+        ApplyGestureVolumes(false); // 立即按基线+Victory 偏移应用
+        lastAppliedAmbient = -1f;   // 下帧强制刷新 Ambient 目标
+        Log("Victory: 暂时抬升 MIDI7、下压 Ambient（基线模型）");
+    }
+
+    // ===== 外部：设置基线（由面板切换时调用） =====
+    public void SetBaselines(float midi7Base01, float ambientBase01)
+    {
+        baselineMidi7Volume01 = Mathf.Clamp01(midi7Base01);
+        ambientBaseVolume01 = Mathf.Clamp01(ambientBase01);
+        lastAppliedMidi7 = -1f;
+        lastAppliedAmbient = -1f;
+        // 立即按当前状态应用一次（更跟手）
+        ApplyGestureVolumes(isWaving);
+        if (ambient != null)
+        {
+            float extraVictoryAmbient = (Time.time < victoryBoostUntil) ? (-victoryAmbientDownDelta) : 0f;
+            float ambTarget = Mathf.Clamp01(ambientBaseVolume01 + ambientIntensityWeight * Mathf.Clamp01(filteredDist < 0f ? 0f : Mathf.InverseLerp(0.05f, 0.45f, filteredDist)) + (isWaving ? waveAmbientUpDelta : 0f) + extraVictoryAmbient);
+            ambient.SetVolume01(ambTarget);
+            lastAppliedAmbient = ambTarget;
+        }
+    }
+
 }

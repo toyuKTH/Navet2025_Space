@@ -11,6 +11,13 @@ public class FistGestureController : MonoBehaviour
     public SimplePanelSwitcher panelController;
     public GameObject mainPlanetPanel; // 主面板（Welcome/Main）
 
+    [Header("音频路由（全局 MIDI7 + 面板 Ambient 基线）")]
+    public SonificationMelody midi7;                 // 指向名为 "MIDI7" 输出的 SonificationMelody
+    [Range(0f, 1f)] public float midi7MainVolume01 = 0.90f; // 主面板时的目标音量
+    [Range(0f, 1f)] public float midi7OtherBase01 = 0.00f;  // 其他面板的基线（一般为 0）
+    [Range(0f, 1f)] public float ambientOtherBase01 = 0.60f; // 子面板 Ambient 的基线
+    public float audioFadeSeconds = 0.25f;                    // 基线淡入淡出
+
     [Header("动画（回主时使用；进入子面板由路由配置）")]
     public Animator cameraAnimator;
     public string backTriggerName = "BackToMain";
@@ -20,10 +27,16 @@ public class FistGestureController : MonoBehaviour
     public AudioSource soundPlayer;
     public AudioClip fistGestureSound;
 
+    [Header("世界状态（可选）")]
+    public WorldHealthCoordinator world; // 若存在，则在离开 panel 时复位
+
     [Header("手势检测参数")]
     public float gestureHoldDuration = 1.0f;  // 握拳保持多久触发
     public int requiredStableFrames = 3;      // 稳定帧数
     public float cooldownSeconds = 3f;        // 触发后冷却时间
+
+    // ====== 伪随机（无放回）状态 ======
+    private System.Collections.Generic.List<int> _shuffleBag = new System.Collections.Generic.List<int>();
 
     // ====== 路由：从 Main 随机进入子面板时使用 ======
     [System.Serializable]
@@ -61,6 +74,10 @@ public class FistGestureController : MonoBehaviour
     {
         StartCoroutine(InitializeSystem());
         if (soundPlayer == null) soundPlayer = GetComponent<AudioSource>();
+        EnsureCurrentIsMainAtStart();
+        // 进入场景时：若已经在 Main，稍作延时后应用，确保 MIDI/Tracks 初始化完成
+        if (IsOnMainPanel())
+            Invoke(nameof(ApplyAudioForMain), 0.05f);
     }
 
     void EnsureCurrentIsMainAtStart()
@@ -250,6 +267,66 @@ public class FistGestureController : MonoBehaviour
         catch { return false; }
     }
 
+        /// <summary>
+    /// 根据当前可用 candidates 构建/补充一轮“无放回”的洗牌袋：
+    /// - 将所有可用索引打乱后放入袋子；
+    /// - 若 avoidRepeat==true 且袋子首位等于 lastRouteIndex，则把它换到袋子末尾，尽量避免连抽。
+    /// </summary>
+    void RefillShuffleBagIfNeeded(System.Collections.Generic.List<int> candidates)
+    {
+        // 如果当前袋子里还有属于 candidates 的元素，就不重建（保证无放回）
+        bool stillValid = false;
+        foreach (var i in _shuffleBag)
+            if (candidates.Contains(i)) { stillValid = true; break; }
+        if (stillValid) return;
+
+        // 先用 candidates 重建袋子
+        _shuffleBag.Clear();
+        _shuffleBag.AddRange(candidates);
+
+        // Fisher–Yates 随机洗牌
+        for (int i = _shuffleBag.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (_shuffleBag[i], _shuffleBag[j]) = (_shuffleBag[j], _shuffleBag[i]);
+        }
+
+        // 避免首个就与上次重复（如果可选>1）
+        if (avoidRepeat && _shuffleBag.Count > 1 && _shuffleBag[0] == lastRouteIndex)
+        {
+            // 把首位挪到末尾
+            int first = _shuffleBag[0];
+            _shuffleBag.RemoveAt(0);
+            _shuffleBag.Add(first);
+        }
+    }
+
+    /// <summary>
+    /// 从洗牌袋里取一个“下一个索引”。如果袋子空，则先补一轮。
+    /// （已经确保 candidates.Count>0）
+    /// </summary>
+    int PopNextPseudoRandomIndex(System.Collections.Generic.List<int> candidates)
+    {
+        // 先确保袋子是按照当前 candidates 重建过的
+        RefillShuffleBagIfNeeded(candidates);
+
+        // 如果袋子里包含无效项（比如面板在运行期被禁用了），过滤掉
+        for (int k = _shuffleBag.Count - 1; k >= 0; k--)
+            if (!candidates.Contains(_shuffleBag[k])) _shuffleBag.RemoveAt(k);
+
+        // 若过滤后为空，直接重建
+        if (_shuffleBag.Count == 0)
+        {
+            RefillShuffleBagIfNeeded(candidates);
+        }
+
+        // 取出袋子首个
+        int pick = _shuffleBag[0];
+        _shuffleBag.RemoveAt(0);
+        return pick;
+    }
+
+
     // ====== Main → 随机进入子面板（只会触发“进入”的动画）======
     IEnumerator EnterRandomFromMain()
     {
@@ -273,15 +350,10 @@ public class FistGestureController : MonoBehaviour
             yield break;
         }
 
-        int pickIdx = candidates[Random.Range(0, candidates.Count)];
-        if (avoidRepeat && candidates.Count > 1 && pickIdx == lastRouteIndex)
-        {
-            int retry = candidates[Random.Range(0, candidates.Count)];
-            if (retry != lastRouteIndex) pickIdx = retry;
-        }
+        int pickIdx = PopNextPseudoRandomIndex(candidates);
         lastRouteIndex = pickIdx;
-
         yield return StartCoroutine(ExecuteRouteByIndex(pickIdx, "EnterFromMain"));
+
     }
 
     // ====== 子面板 → 返回 Main（只会触发“返回”的动画）======
@@ -322,8 +394,11 @@ public class FistGestureController : MonoBehaviour
         // 5. 正式切换为 current = main
         if (panelController != null && mainPlanetPanel != null)
         {
+            // 在切回主面板前，复位离开的子面板状态
+            TryResetWorldStateForLeavingPanel(panelController.current);
             panelController.SwitchTo(mainPlanetPanel);
             Debug.Log($"[FistGesture] 🔙 已切回主面板: {mainPlanetPanel.name}");
+            ApplyAudioForMain();
 
             // 如果用 CanvasGroup 预热，这里恢复显示 & 交互
             var cg = mainPlanetPanel.GetComponent<CanvasGroup>();
@@ -379,8 +454,11 @@ public class FistGestureController : MonoBehaviour
         // 切换到该路由绑定的面板
         if (panelController != null && route.panel != null)
         {
+            // 在切换前，对即将离开的面板执行复位
+            TryResetWorldStateForLeavingPanel(panelController.current);
             panelController.SwitchTo(route.panel);
             Debug.Log($"[FistGesture] ✅ 已切换到面板: {route.panel.name}");
+            ApplyAudioForPanel(route.panel);
         }
         else
         {
@@ -390,6 +468,159 @@ public class FistGestureController : MonoBehaviour
         isPlayingAnimation = false;
         StartCoroutine(StartCooldown());
     }
+
+    // ====== 音频基线应用 ======
+        void ApplyAudioForMain()
+    {
+        EnsureMidi7();
+
+        // 1) 其它面板：只清空 Ambient；Shaking 基线不要在 inactive 时调用 SetBaselines 以免立刻发 CC
+        if (routes != null)
+        {
+            foreach (var r in routes)
+            {
+                if (r == null || r.panel == null) continue;
+
+                // Ambient 清零避免串音
+                var ambArr = r.panel.GetComponentsInChildren<GenerativeAmbientMidi>(true);
+                foreach (var amb in ambArr)
+                {
+                    if (amb != null) amb.SetVolume01(0f);
+                }
+
+                // ⚠️ 关键：仅当 Shaking 组件“当前激活”时才设置基线（会触发立即发 CC）
+                var sArr = r.panel.GetComponentsInChildren<Shaking>(true);
+                foreach (var s in sArr)
+                {
+                    if (s != null && s.isActiveAndEnabled)
+                    {
+                        s.SetBaselines(0f, 0f); // 只有真正激活的面板才需要当场回写
+                    }
+                    // 若面板没激活，跳过；等真正切换过去时再由 ApplyAudioForPanel() 设置
+                }
+            }
+        }
+
+        // 2) 主面板下的 Shaking：设置基线（会按当前状态发一次 CC）
+        if (mainPlanetPanel != null)
+        {
+            var shakings = mainPlanetPanel.GetComponentsInChildren<Shaking>(true);
+            foreach (var s in shakings)
+            {
+                if (s != null && s.isActiveAndEnabled)
+                {
+                    s.SetBaselines(Mathf.Clamp01(midi7MainVolume01), 0f);
+                }
+            }
+        }
+
+        // 3) 最后写入者：直接对全局 MIDI7 发送主音量（确保最终为 0.90）
+        if (midi7 != null && midi7.isActiveAndEnabled)
+        {
+            midi7.SendVolumeCC01(Mathf.Clamp01(midi7MainVolume01), audioFadeSeconds);
+            // 4) 再加一次小延时的确认重发，防止有迟到的 SetBaselines 把它拉走
+            StartCoroutine(_ConfirmMidi7After(0.15f, Mathf.Clamp01(midi7MainVolume01)));
+        }
+    }
+
+    IEnumerator _ConfirmMidi7After(float sec, float v01)
+    {
+        yield return new WaitForSeconds(sec);
+        if (midi7 != null && midi7.isActiveAndEnabled)
+        {
+            midi7.SendVolumeCC01(v01, 0.01f);
+            Debug.Log($"[FistGesture] ✅ 确认重发 CC7={v01:0.00}");
+        }
+    }
+
+
+    void ApplyAudioForPanel(GameObject panel)
+    {
+        // 子面板：拉低 MIDI7 基线（由该面板的 Shaking 驱动）并抬升该面板 Ambient 基线
+        if (panel == null) return;
+        // 立即将 MIDI7 拉至子面板基线
+        EnsureMidi7();
+        if (midi7 != null) midi7.SendVolumeCC01(Mathf.Clamp01(midi7OtherBase01), audioFadeSeconds);
+
+        // 设置该面板 Shaking 的基线
+        var targetShakings = panel.GetComponentsInChildren<Shaking>(true);
+        foreach (var s in targetShakings)
+        {
+            if (s == null) continue;
+            s.SetBaselines(Mathf.Clamp01(midi7OtherBase01), Mathf.Clamp01(ambientOtherBase01));
+        }
+
+        // 同时把主面板下的 Shaking 基线也设置为子面板基线，避免其把 MIDI7 拉回主音量
+        if (mainPlanetPanel != null)
+        {
+            var mainShakings = mainPlanetPanel.GetComponentsInChildren<Shaking>(true);
+            foreach (var s in mainShakings)
+            {
+                if (s != null) s.SetBaselines(Mathf.Clamp01(midi7OtherBase01), 0f);
+            }
+        }
+
+        // 立即把该面板下的 Ambient 拉到基线（无需等待手势）
+        var ambs = panel.GetComponentsInChildren<GenerativeAmbientMidi>(true);
+        foreach (var amb in ambs)
+        {
+            if (amb != null) amb.SetVolume01(Mathf.Clamp01(ambientOtherBase01));
+        }
+
+        // 其他面板 Ambient 清零，避免串音
+        if (routes != null)
+        {
+            foreach (var r in routes)
+            {
+                if (r == null || r.panel == null || r.panel == panel) continue;
+                var ambArr = r.panel.GetComponentsInChildren<GenerativeAmbientMidi>(true);
+                foreach (var amb in ambArr)
+                {
+                    if (amb != null) amb.SetVolume01(0f);
+                }
+                var sArr = r.panel.GetComponentsInChildren<Shaking>(true);
+                foreach (var s in sArr)
+                {
+                    if (s != null) s.SetBaselines(0f, 0f);
+                }
+            }
+        }
+    }
+
+        // ====== 工具：确保 MIDI7 引用 ======
+    void EnsureMidi7()
+    {
+        if (midi7 == null)
+            Debug.LogWarning("[FistGesture] ⚠️ MIDI7 未绑定，请在 Inspector 手动指定。");
+    }
+
+    // 离开某个 panel 时，尝试复位世界（树与地球颜色）。
+    // 规则：如果挂有 WorldHealthCoordinator，则调用 ResetToInitial；
+    // 否则尝试在该 panel 下查找 TreeSpawnerOnSphere 和 EarthColorController 执行本地复位。
+    void TryResetWorldStateForLeavingPanel(GameObject leavingPanel)
+    {
+        if (leavingPanel == null) return;
+
+        if (world != null)
+        {
+            world.ResetToInitial(true);
+            return;
+        }
+
+        // 兜底方案：局部搜索并复位
+        var spawners = leavingPanel.GetComponentsInChildren<TreeSpawnerOnSphere>(true);
+        foreach (var sp in spawners)
+        {
+            if (sp != null) sp.ForceClearNow();
+        }
+
+        var earthControllers = leavingPanel.GetComponentsInChildren<EarthColorController>(true);
+        foreach (var ec in earthControllers)
+        {
+            if (ec != null) ec.ResetImmediate(0f);
+        }
+    }
+
 
     // ====== 冷却 ======
     IEnumerator StartCooldown()

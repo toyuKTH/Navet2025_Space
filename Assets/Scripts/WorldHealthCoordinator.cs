@@ -172,4 +172,32 @@ public class WorldHealthCoordinator : MonoBehaviour
             yield return null;
         }
     }
+
+    // 立即重置至初始状态：清空树、地球恢复为健康(Blend=0)、同步内部状态
+    public void ResetToInitial(bool alsoStopFlows = true)
+    {
+        if (alsoStopFlows && flow != null)
+        {
+            StopCoroutine(flow);
+            flow = null;
+        }
+
+        // 清空树
+        if (trees != null)
+        {
+            trees.ForceClearNow();
+        }
+
+        // 地球恢复为健康
+        if (earth != null)
+        {
+            earth.ResetImmediate(0f);
+        }
+
+        // 重置内部门控/状态
+        Current = Mode.Healthy;
+        lastTransitionAt = -999f;
+        lastActionAt = Time.time;
+        idleTriggered = false;
+    }
 }

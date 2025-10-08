@@ -59,6 +59,8 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
     private float lastTriggerAt = -999f;
     private bool inBurst = false; // 与老逻辑兼容
 
+    [Header("联动（可选）：把 ✌️ 通知给 Shaking 做音量回升")]
+    public Shaking shaking;
     void Log(string s) { if (verboseLogs) Debug.Log("[Peace→Spawner] " + s); }
 
     void Start()
@@ -164,6 +166,9 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
             Log("✌️ 触发 WorldHealthCoordinator.GoHealthy()");
             world.NotifyUserAction();
             world.GoHealthy();
+
+            // 通知声音路由（ ambient↓ / MIDI7↑ ）
+            if (shaking) shaking.OnVictoryGesture();
             return; // 不再执行本地爆发
         }
 
@@ -177,6 +182,7 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
 
         inBurst = true;
         Log("✌️ 触发 BeginGrow()");
+        if (shaking) shaking.OnVictoryGesture();
         spawner.BeginGrow();
 
         yield return new WaitForSeconds(Mathf.Max(0f, burstDuration));

@@ -10,13 +10,24 @@ public class EarthColorController : MonoBehaviour
     static readonly int BlendID = Shader.PropertyToID("_Blend");
     Coroutine co;
 
-    // ¡ï ĞÂÔö£ºÍâ²¿¿É¶ÁµÄ¶¯»­×´Ì¬/½ø¶È & Íê³ÉÊÂ¼ş
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â²¿ï¿½É¶ï¿½ï¿½Ä¶ï¿½ï¿½ï¿½×´Ì¬/ï¿½ï¿½ï¿½ï¿½ & ï¿½ï¿½ï¿½ï¿½Â¼ï¿½
     public bool IsAnimating { get; private set; }
     public float CurrentBlend { get; private set; }
-    public System.Action<float> OnBlendFinished; // ²ÎÊı=Ä¿±êÖµ(0=»Ö¸´,1=¿İ½ß)
+    public System.Action<float> OnBlendFinished; // ï¿½ï¿½ï¿½ï¿½=Ä¿ï¿½ï¿½Öµ(0=ï¿½Ö¸ï¿½,1=ï¿½İ½ï¿½)
 
-    public void Deplete() => StartBlend(1f);  // ½¡¿µ¡ú¿İ½ß
-    public void Recover() => StartBlend(0f);  // ¿İ½ß¡ú½¡¿µ
+    public void Deplete() => StartBlend(1f);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ½ï¿½
+    public void Recover() => StartBlend(0f);  // ï¿½İ½ß¡ï¿½ï¿½ï¿½ï¿½ï¿½
+
+    // ç«‹å³å¤ä½ä¸ºæŒ‡å®šæ··åˆå€¼ï¼ˆé»˜è®¤å›åˆ°åˆå§‹å¥åº·=0ï¼‰
+    public void ResetImmediate(float target = 0f)
+    {
+        if (co != null) { StopCoroutine(co); co = null; }
+        var mat = earthRenderer.material;
+        CurrentBlend = target;
+        if (mat.HasProperty(BlendID)) mat.SetFloat(BlendID, target);
+        IsAnimating = false;
+        OnBlendFinished?.Invoke(target);
+    }
 
     void StartBlend(float target)
     {
@@ -26,24 +37,24 @@ public class EarthColorController : MonoBehaviour
 
     IEnumerator BlendTo(float target)
     {
-        var mat = earthRenderer.material; // µ¥¸öµØÇò¿ÉÓÃ material
+        var mat = earthRenderer.material; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ material
         float start = mat.HasProperty(BlendID) ? mat.GetFloat(BlendID) : 0f;
 
-        IsAnimating = true;                         // ¡ï
+        IsAnimating = true;                         // ï¿½ï¿½
         float t = 0f;
         while (t < duration)
         {
             t += Time.deltaTime;
             float k = curve.Evaluate(Mathf.Clamp01(t / duration));
-            CurrentBlend = Mathf.Lerp(start, target, k);  // ¡ï
+            CurrentBlend = Mathf.Lerp(start, target, k);  // ï¿½ï¿½
             mat.SetFloat(BlendID, CurrentBlend);
             yield return null;
         }
-        CurrentBlend = target;                      // ¡ï
+        CurrentBlend = target;                      // ï¿½ï¿½
         mat.SetFloat(BlendID, target);
 
-        IsAnimating = false;                        // ¡ï
-        OnBlendFinished?.Invoke(target);            // ¡ï
+        IsAnimating = false;                        // ï¿½ï¿½
+        OnBlendFinished?.Invoke(target);            // ï¿½ï¿½
         co = null;
     }
 }
