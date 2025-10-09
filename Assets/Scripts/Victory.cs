@@ -160,6 +160,12 @@ public class PeaceSignTreeTriggerForSpawner : MonoBehaviour
         lastTriggerAt = Time.time;
 
         // ✅ 联动：识别到 ✌️ → 通知协调器“变好”
+        if (world == null)
+        {
+            // 优先在当前面板/父层内找
+            world = GetComponentInParent<WorldHealthCoordinator>();
+            if (world == null) world = FindObjectOfType<WorldHealthCoordinator>();
+        }
         if (world != null)
         {
             inBurst = true; // 与本地状态机兼容

@@ -8237,9 +8237,9 @@ MonoBehaviour:
   burstDuration: 1.2
   retriggerDelay: 1.2
   lockDuringPhase: 1
-  holdTime: 0.2
-  soloHandMinTime: 0.2
-  debugGUI: 1
+  holdTime: 0.3
+  soloHandMinTime: 0.3
+  debugGUI: 0
   verboseLogs: 1
   shaking: {fileID: 1915102962}
 --- !u!23 &1095570522 stripped
@@ -10072,9 +10072,9 @@ MonoBehaviour:
   burstDuration: 1.2
   retriggerDelay: 1.2
   lockDuringPhase: 1
-  holdTime: 0.2
-  soloHandMinTime: 0.2
-  debugGUI: 1
+  holdTime: 0.3
+  soloHandMinTime: 0.3
+  debugGUI: 0
   verboseLogs: 1
   shaking: {fileID: 1746754595}
 --- !u!114 &1326663034
@@ -12901,8 +12901,8 @@ MonoBehaviour:
   burstDuration: 1.2
   retriggerDelay: 1.2
   lockDuringPhase: 1
-  holdTime: 0.2
-  soloHandMinTime: 0.2
+  holdTime: 0.3
+  soloHandMinTime: 0.3
   debugGUI: 0
   verboseLogs: 1
   shaking: {fileID: 1549477485}

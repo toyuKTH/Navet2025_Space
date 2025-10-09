@@ -38,7 +38,7 @@ public class FistGestureController : MonoBehaviour
     public AudioClip fistGestureSound;
 
     [Header("世界状态（可选）")]
-    public WorldHealthCoordinator world; // 若存在，则在离开 panel 时复位
+    public WorldHealthCoordinator world; // 仅用于 Inspector 可视绑定；运行期将根据当前面板自动重绑
 
     [Header("手势检测参数")]
     public float gestureHoldDuration = 1.0f;  // 握拳保持多久触发
@@ -86,17 +86,15 @@ public class FistGestureController : MonoBehaviour
     private float planetEnteredAt = -1f;
     private bool planetIdleOBTFired = false;
     private float lastPlanetOBESentAt = -999f;
+    private WorldHealthCoordinator boundWorld; // 当前面板绑定的 WorldHealthCoordinator
 
     void Start()
     {
         StartCoroutine(InitializeSystem());
         if (soundPlayer == null) soundPlayer = GetComponent<AudioSource>();
         EnsureCurrentIsMainAtStart();
-        // 订阅世界动作事件
-        if (world != null)
-        {
-            world.OnUserAction += OnWorldUserAction;
-        }
+        // 根据当前面板绑定协调器
+        RebindWorldForPanel(IsOnMainPanel() ? mainPlanetPanel : (panelController ? panelController.current : null));
         // 周期性检查 Main/Planet 的 OBT/OBE 条件
         InvokeRepeating(nameof(OBIdleTick), 0.2f, 0.2f);
         // 进入场景时：若已经在 Main，稍作延时后应用，确保 MIDI/Tracks 初始化完成
@@ -122,6 +120,7 @@ public class FistGestureController : MonoBehaviour
             mainOBTFiredThisStay = false;
             planetEnteredAt = -1f;
             planetIdleOBTFired = false;
+            RebindWorldForPanel(mainPlanetPanel);
         }
     }
 
@@ -166,10 +165,7 @@ public class FistGestureController : MonoBehaviour
         }
         CancelInvoke(nameof(AnalyzeFistGesture));
         CancelInvoke(nameof(OBIdleTick));
-        if (world != null)
-        {
-            world.OnUserAction -= OnWorldUserAction;
-        }
+        if (boundWorld != null) boundWorld.OnUserAction -= OnWorldUserAction;
     }
 
     void ProcessHandData(object sender, OutputStream<NormalizedLandmarkList>.OutputEventArgs eventArgs)
@@ -230,6 +226,8 @@ public class FistGestureController : MonoBehaviour
                 gestureTimer += 0.1f;
                 if (gestureTimer >= gestureHoldDuration)
                 {
+                    // 在子面板中检测到握拳：先触发一次 planetOBE（去抖）
+                    TriggerPlanetOBEIfOnPlanet();
                     RequestTransition("Gesture.Fist");
                 }
             }
@@ -450,6 +448,9 @@ public class FistGestureController : MonoBehaviour
                 cg.interactable = true;
                 cg.blocksRaycasts = true;
             }
+
+            // 重新绑定 Main 的协调器
+            RebindWorldForPanel(mainPlanetPanel);
         }
         else
         {
@@ -515,6 +516,9 @@ public class FistGestureController : MonoBehaviour
             planetEnteredAt = Time.time;
             planetIdleOBTFired = false;
             lastPlanetOBESentAt = -999f;
+
+            // 绑定该子面板的协调器
+            RebindWorldForPanel(route.panel);
         }
         else
         {
@@ -554,9 +558,9 @@ public class FistGestureController : MonoBehaviour
         if (planetEnteredAt < 0f) { planetEnteredAt = Time.time; planetIdleOBTFired = false; }
 
         float sinceAction;
-        if (world != null)
+        if (boundWorld != null)
         {
-            sinceAction = Time.time - world.LastActionTime;
+            sinceAction = Time.time - boundWorld.LastActionTime;
         }
         else
         {
@@ -575,16 +579,51 @@ public class FistGestureController : MonoBehaviour
         }
     }
 
-    // 世界检测到“有动作”时（挥手/✌️等）
-    void OnWorldUserAction()
+    // 世界检测到“有动作”（挥手/抖动/✌️等）
+    void OnWorldUserAction() { TriggerPlanetOBEIfOnPlanet(); }
+
+    // 工具：在子面板时触发 planetOBE（带去抖），并复位无动作门控
+    void TriggerPlanetOBEIfOnPlanet()
     {
         if (IsOnMainPanel()) return;
         if (obAnimator == null || string.IsNullOrEmpty(planetOBETrigger)) return;
-        if (Time.time - lastPlanetOBESentAt < Mathf.Max(0.05f, planetOBEDebounce)) return; // 去抖
+        if (Time.time - lastPlanetOBESentAt < Mathf.Max(0.05f, planetOBEDebounce)) return;
         obAnimator.ResetTrigger(planetOBETrigger);
         obAnimator.SetTrigger(planetOBETrigger);
         lastPlanetOBESentAt = Time.time;
-        planetIdleOBTFired = false; // 重新允许下次无动作再提示
+        planetIdleOBTFired = false;
+    }
+
+    // 根据给定面板重新绑定对应的 WorldHealthCoordinator（用于动作上报）
+    void RebindWorldForPanel(GameObject panel)
+    {
+        WorldHealthCoordinator target = null;
+        if (panel != null)
+        {
+            target = panel.GetComponentInChildren<WorldHealthCoordinator>(true);
+        }
+        else if (world != null)
+        {
+            // 兼容：若手动在 Inspector 绑定了 world，则可作为兜底
+            target = world;
+        }
+
+        if (ReferenceEquals(boundWorld, target)) return;
+
+        if (boundWorld != null)
+        {
+            boundWorld.OnUserAction -= OnWorldUserAction;
+        }
+        boundWorld = target;
+        if (boundWorld != null)
+        {
+            boundWorld.OnUserAction += OnWorldUserAction;
+            Debug.Log($"[FistGesture] 🔗 绑定 WorldHealthCoordinator: {boundWorld.name}");
+        }
+        else
+        {
+            Debug.LogWarning("[FistGesture] 未在当前面板找到 WorldHealthCoordinator（挥手/✌️将无法触发 OBE）");
+        }
     }
 
     // ====== 音频基线应用 ======

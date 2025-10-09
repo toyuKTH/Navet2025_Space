@@ -8,11 +8,13 @@ using Rect = UnityEngine.Rect;   // 避免 Mediapipe.Rect / UnityEngine.Rect 歧
 
 public class Shaking : MonoBehaviour
 {
+    private float suspendWaveUntil = -999f;
+
     [Header("Holistic（不填会自动找名为 Solution 的对象）")]
     public HolisticTrackingSolution holistic;
 
     [Header("World Health（推荐优先使用）")]
-    public WorldHealthCoordinator world;   // ✨ 新增：协调器引用
+    public WorldHealthCoordinator world;   // ✨ 新增：协调器引用（建议挂当前面板内的实例）
 
     [Header("目标对象（为空则缩放自己）")]
     public Transform target;
@@ -327,6 +329,17 @@ public class Shaking : MonoBehaviour
         float s = Mathf.Lerp(scaleMin, scaleMax, t);
         if (target) target.localScale = baseScale * s;
 
+        // Victory 门控之后、左右手有效性检查之后，马上加：
+        if (Time.time < suspendWaveUntil)
+        {
+            EarlyExit($"wave 被暂停到 {suspendWaveUntil:0.00}");
+            ResetVisualAndStorm();        // 不放风暴/不写路由
+            isWaving = false;             // 强制认为非挥手
+            ApplyGestureVolumes(false);   // 立即应用非挥手音量
+            return;
+        }
+
+
         // ===== Storm：当 Δ 超阈值时触发一次 =====
         float delta = Mathf.Abs(filteredDist - prevFilteredDist);
         if (delta > stormChangeThreshold && (Time.time - lastStormTrig) >= stormRetriggerDelay)
@@ -341,9 +354,15 @@ public class Shaking : MonoBehaviour
             }
 
             // ✅ 联动：抖动脉冲 → 通知协调器“变坏”
+            if (world == null)
+            {
+                // 优先在本组件上下文（所在面板）内寻找
+                world = GetComponentInParent<WorldHealthCoordinator>();
+                if (world == null) world = FindObjectOfType<WorldHealthCoordinator>();
+            }
             if (world != null)
             {
-                Log("⚡ Shaking 脉冲 → WorldHealthCoordinator.GoDepleted()");
+                Log("⚡ Shaking 脉冲 → WorldHealthCoordinator.NotifyUserAction()+GoDepleted()");
                 world.NotifyUserAction();
                 world.GoDepleted();
             }
