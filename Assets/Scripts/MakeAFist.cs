@@ -53,6 +53,10 @@ public class FistGestureController : MonoBehaviour
     [Header("世界状态（可选）")]
     public WorldHealthCoordinator world; // 仅用于 Inspector 可视绑定；运行期将根据当前面板自动重绑
 
+    [Header("自动返回 Main（无挥手/✌️超时）")]
+    [Tooltip("在 Planet 内超过该秒数未检测到 Shaking/Victory（即无 World 用户动作）则自动回主；0=关闭")]
+    public float autoBackToMainSeconds = 60f;
+
     [Header("手势检测参数")]
     public float gestureHoldDuration = 1.0f;  // 握拳保持多久触发
     public int requiredStableFrames = 3;      // 稳定帧数
@@ -573,6 +577,13 @@ public class FistGestureController : MonoBehaviour
         float sinceAction = (boundWorld != null)
             ? Time.time - boundWorld.LastActionTime
             : Time.time - planetEnteredAt;
+
+        // 自动返回 Main：Planet 内长时间无“挥手/✌️”（即无 World 用户动作）
+        if (autoBackToMainSeconds > 0f && sinceAction >= autoBackToMainSeconds)
+        {
+            if (!isPlayingAnimation) { Debug.Log("[FistGesture] ⌛ Planet 超时无动作 -> 自动返回 Main"); RequestTransition("AutoBackTimeout"); }
+            return; // 本次 Tick 已处理自动返回，不再继续 OBT 检查
+        }
 
         if (!planetIdleOBTFired && planetNoActionSecondsForOBT > 0f && sinceAction >= planetNoActionSecondsForOBT)
         {
