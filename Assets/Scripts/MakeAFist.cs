@@ -23,6 +23,16 @@ public class FistGestureController : MonoBehaviour
     public string backTriggerName = "BackToMain";
     public float backAnimationDelay = 1.5f;
 
+    [Header("OB 提示/引导触发")]
+    public Animator obAnimator;             // 专门驱动 OB 动画的 Animator（非相机）
+    public string mainOBTTrigger = "mainOBT";  // Main 长时间无跳转 → 提示
+    public string mainOBETrigger = "mainOBE";  // Main 离开 → 结束提示
+    public string planetOBTTrigger = "planetOBT"; // Planet 无动作 → 提示
+    public string planetOBETrigger = "planetOBE"; // Planet 有动作 → 结束提示
+    [Tooltip("Main 面板无跳转多久后触发 mainOBT")] public float mainIdleSecondsForOBT = 10f;
+    [Tooltip("子面板无用户动作多久后触发 planetOBT")] public float planetNoActionSecondsForOBT = 3f;
+    [Tooltip("planetOBE 触发的去抖间隔（秒）")] public float planetOBEDebounce = 0.2f;
+
     [Header("音效")]
     public AudioSource soundPlayer;
     public AudioClip fistGestureSound;
@@ -70,11 +80,25 @@ public class FistGestureController : MonoBehaviour
     private bool isGestureLocked;     // 冷却锁
     private bool isPlayingAnimation;  // 动画进行中
 
+    // ====== OBT/OBE 状态 ======
+    private float mainEnteredAt = -1f;
+    private bool mainOBTFiredThisStay = false;
+    private float planetEnteredAt = -1f;
+    private bool planetIdleOBTFired = false;
+    private float lastPlanetOBESentAt = -999f;
+
     void Start()
     {
         StartCoroutine(InitializeSystem());
         if (soundPlayer == null) soundPlayer = GetComponent<AudioSource>();
         EnsureCurrentIsMainAtStart();
+        // 订阅世界动作事件
+        if (world != null)
+        {
+            world.OnUserAction += OnWorldUserAction;
+        }
+        // 周期性检查 Main/Planet 的 OBT/OBE 条件
+        InvokeRepeating(nameof(OBIdleTick), 0.2f, 0.2f);
         // 进入场景时：若已经在 Main，稍作延时后应用，确保 MIDI/Tracks 初始化完成
         if (IsOnMainPanel())
             Invoke(nameof(ApplyAudioForMain), 0.05f);
@@ -91,6 +115,13 @@ public class FistGestureController : MonoBehaviour
             // 可选：确保 main 激活，其他面板隐藏（根据你的 SimplePanelSwitcher 实现来处理）
             mainPlanetPanel.SetActive(true);
             Debug.Log("[FistGesture] ✅ 强制将 current 指向 mainPlanetPanel");
+        }
+        if (IsOnMainPanel())
+        {
+            mainEnteredAt = Time.time;
+            mainOBTFiredThisStay = false;
+            planetEnteredAt = -1f;
+            planetIdleOBTFired = false;
         }
     }
 
@@ -134,6 +165,11 @@ public class FistGestureController : MonoBehaviour
             trackingGraph.OnLeftHandLandmarksOutput -= ProcessHandData;
         }
         CancelInvoke(nameof(AnalyzeFistGesture));
+        CancelInvoke(nameof(OBIdleTick));
+        if (world != null)
+        {
+            world.OnUserAction -= OnWorldUserAction;
+        }
     }
 
     void ProcessHandData(object sender, OutputStream<NormalizedLandmarkList>.OutputEventArgs eventArgs)
@@ -400,6 +436,12 @@ public class FistGestureController : MonoBehaviour
             Debug.Log($"[FistGesture] 🔙 已切回主面板: {mainPlanetPanel.name}");
             ApplyAudioForMain();
 
+            // 进入 Main：重置主界面驻留计时与 OBT 门控
+            mainEnteredAt = Time.time;
+            mainOBTFiredThisStay = false;
+            planetEnteredAt = -1f;
+            planetIdleOBTFired = false;
+
             // 如果用 CanvasGroup 预热，这里恢复显示 & 交互
             var cg = mainPlanetPanel.GetComponent<CanvasGroup>();
             if (cg != null)
@@ -434,6 +476,15 @@ public class FistGestureController : MonoBehaviour
 
         var route = routes[idx];
 
+        // 若当前处于 Main → 准备离开，先触发 mainOBE
+        if (IsOnMainPanel() && obAnimator != null && !string.IsNullOrEmpty(mainOBETrigger))
+        {
+            obAnimator.ResetTrigger(mainOBETrigger);
+            obAnimator.SetTrigger(mainOBETrigger);
+            mainEnteredAt = -1f; // 结束本次 Main 驻留
+            mainOBTFiredThisStay = false;
+        }
+
         // 音效
         if (soundPlayer != null && fistGestureSound != null)
             soundPlayer.PlayOneShot(fistGestureSound);
@@ -459,6 +510,11 @@ public class FistGestureController : MonoBehaviour
             panelController.SwitchTo(route.panel);
             Debug.Log($"[FistGesture] ✅ 已切换到面板: {route.panel.name}");
             ApplyAudioForPanel(route.panel);
+
+            // 进入子面板：重置 Planet 计时与门控
+            planetEnteredAt = Time.time;
+            planetIdleOBTFired = false;
+            lastPlanetOBESentAt = -999f;
         }
         else
         {
@@ -467,6 +523,68 @@ public class FistGestureController : MonoBehaviour
 
         isPlayingAnimation = false;
         StartCoroutine(StartCooldown());
+    }
+
+    // ====== OBT/OBE 条件检测（0.2s Tick）======
+    void OBIdleTick()
+    {
+        if (obAnimator == null) return;
+
+        if (IsOnMainPanel())
+        {
+            if (mainEnteredAt < 0f) { mainEnteredAt = Time.time; mainOBTFiredThisStay = false; }
+            // Main 驻留超时提示（只触发一次，直到离开 Main 再复位）
+            if (!mainOBTFiredThisStay && mainIdleSecondsForOBT > 0f && (Time.time - mainEnteredAt) >= mainIdleSecondsForOBT)
+            {
+                if (!string.IsNullOrEmpty(mainOBTTrigger))
+                {
+                    obAnimator.ResetTrigger(mainOBTTrigger);
+                    obAnimator.SetTrigger(mainOBTTrigger);
+                }
+                mainOBTFiredThisStay = true;
+            }
+
+            // 重置 Planet 门控
+            planetEnteredAt = -1f;
+            planetIdleOBTFired = false;
+            return;
+        }
+
+        // —— 子面板逻辑 ——
+        if (planetEnteredAt < 0f) { planetEnteredAt = Time.time; planetIdleOBTFired = false; }
+
+        float sinceAction;
+        if (world != null)
+        {
+            sinceAction = Time.time - world.LastActionTime;
+        }
+        else
+        {
+            // 若无协调器，则退化为“进入子面板后的静默时长”
+            sinceAction = Time.time - planetEnteredAt;
+        }
+
+        if (!planetIdleOBTFired && planetNoActionSecondsForOBT > 0f && sinceAction >= planetNoActionSecondsForOBT)
+        {
+            if (!string.IsNullOrEmpty(planetOBTTrigger))
+            {
+                obAnimator.ResetTrigger(planetOBTTrigger);
+                obAnimator.SetTrigger(planetOBTTrigger);
+            }
+            planetIdleOBTFired = true;
+        }
+    }
+
+    // 世界检测到“有动作”时（挥手/✌️等）
+    void OnWorldUserAction()
+    {
+        if (IsOnMainPanel()) return;
+        if (obAnimator == null || string.IsNullOrEmpty(planetOBETrigger)) return;
+        if (Time.time - lastPlanetOBESentAt < Mathf.Max(0.05f, planetOBEDebounce)) return; // 去抖
+        obAnimator.ResetTrigger(planetOBETrigger);
+        obAnimator.SetTrigger(planetOBETrigger);
+        lastPlanetOBESentAt = Time.time;
+        planetIdleOBTFired = false; // 重新允许下次无动作再提示
     }
 
     // ====== 音频基线应用 ======

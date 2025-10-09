@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -32,6 +33,10 @@ public class WorldHealthCoordinator : MonoBehaviour
     public enum Mode { Healthy, Depleted, Transitioning }
     public Mode Current { get; private set; } = Mode.Healthy;
 
+    // 对外：用户动作事件与最近一次动作时间
+    public event Action OnUserAction;
+    public float LastActionTime => lastActionAt;
+
     // ���� ������� ���� //
     public void GoHealthy() { StartFlow(FlowHealthy()); }   // ��ã�����ա�����ָ�������
     public void GoDepleted() { StartFlow(FlowDepleted()); }  // �仵������ա�����ݽ�
@@ -41,6 +46,7 @@ public class WorldHealthCoordinator : MonoBehaviour
     {
         lastActionAt = Time.time;
         idleTriggered = false; // 重置一次性触发门控
+        OnUserAction?.Invoke();
     }
 
     void StartFlow(IEnumerator co)
