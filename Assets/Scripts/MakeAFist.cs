@@ -105,6 +105,9 @@ public class FistGestureController : MonoBehaviour
     private float lastPlanetOBESentAt = -999f;
     private WorldHealthCoordinator boundWorld; // 当前面板绑定的 WorldHealthCoordinator
 
+    // ★ 自动返回节流：下一次允许触发自动返回的最早时间戳
+    private float _nextAutoBackEligibleAt = -1f; // ★
+
     void Start()
     {
         StartCoroutine(InitializeSystem());
@@ -179,7 +182,11 @@ public class FistGestureController : MonoBehaviour
         }
         CancelInvoke(nameof(AnalyzeFistGesture));
         CancelInvoke(nameof(OBIdleTick));
-        if (boundWorld != null) boundWorld.OnUserAction -= OnWorldUserAction;
+        if (boundWorld != null)
+        {
+            boundWorld.OnUserAction -= OnWorldUserAction;
+            boundWorld.OnIdleAutoHealthy -= OnWorldIdleAutoHealthy;
+        }
     }
 
     void ProcessHandData(object sender, OutputStream<NormalizedLandmarkList>.OutputEventArgs eventArgs)
@@ -537,6 +544,14 @@ public class FistGestureController : MonoBehaviour
 
             // 绑定该面板的 WHC，并注入子树
             RebindWorldForPanel(route.panel);
+
+            // ★ 进入子面板：初始化最近动作时间与节流窗口，避免“秒触发”与连发
+            if (boundWorld != null)
+            {
+                if (boundWorld.LastActionTime <= 0f) boundWorld.LastActionTime = Time.time; // ★
+                else boundWorld.LastActionTime = Time.time; // ★ 直接刷新，进入即刻起算
+            }
+            _nextAutoBackEligibleAt = Time.time + Mathf.Max(0.5f, autoBackToMainSeconds); // ★ 首次进入给足间隔
         }
         else
         {
@@ -549,55 +564,88 @@ public class FistGestureController : MonoBehaviour
 
     // ====== OBT/OBE 条件检测（0.2s Tick）======
     void OBIdleTick()
+{
+    // 统一 0.2s tick，别在这里做耗时操作
+    if (obAnimator == null) { Debug.LogWarning("[OB] obAnimator 未绑定，跳过"); return; }
+
+    // ===== Main 面板逻辑 =====
+    if (IsOnMainPanel())
     {
-        if (obAnimator == null) return;
+        if (mainEnteredAt < 0f) { mainEnteredAt = Time.time; mainOBTFiredThisStay = false; }
 
-        if (IsOnMainPanel())
+        float stayed = Time.time - mainEnteredAt;
+        if (!mainOBTFiredThisStay && mainIdleSecondsForOBT > 0f && stayed >= mainIdleSecondsForOBT)
         {
-            if (mainEnteredAt < 0f) { mainEnteredAt = Time.time; mainOBTFiredThisStay = false; }
-            if (!mainOBTFiredThisStay && mainIdleSecondsForOBT > 0f && (Time.time - mainEnteredAt) >= mainIdleSecondsForOBT)
+            if (!string.IsNullOrEmpty(mainOBTTrigger))
             {
-                if (!string.IsNullOrEmpty(mainOBTTrigger))
-                {
-                    obAnimator.ResetTrigger(mainOBTTrigger);
-                    obAnimator.SetTrigger(mainOBTTrigger);
-                }
-                mainOBTFiredThisStay = true;
+                obAnimator.ResetTrigger(mainOBTTrigger);
+                obAnimator.SetTrigger(mainOBTTrigger);
+                Debug.Log($"[OB] MainOBT 触发：stayed={stayed:0.00}s ≥ {mainIdleSecondsForOBT:0.00}s");
             }
-
-            // 清空 Planet 门控
-            planetEnteredAt = -1f;
-            // 不在这里把 planetIdleOBTFired 清零（由切换逻辑维护）
-            return;
+            else Debug.LogWarning("[OB] MainOBTTrigger 为空，无法触发");
+            mainOBTFiredThisStay = true;
         }
-
-        // —— 子面板逻辑 —— 
-        if (planetEnteredAt < 0f) { planetEnteredAt = Time.time; planetIdleOBTFired = false; }
-
-        float sinceAction = (boundWorld != null)
-            ? Time.time - boundWorld.LastActionTime
-            : Time.time - planetEnteredAt;
-
-        // 自动返回 Main：Planet 内长时间无“挥手/✌️”（即无 World 用户动作）
-        if (autoBackToMainSeconds > 0f && sinceAction >= autoBackToMainSeconds)
+        else
         {
-            if (!isPlayingAnimation) { Debug.Log("[FistGesture] ⌛ Planet 超时无动作 -> 自动返回 Main"); RequestTransition("AutoBackTimeout"); }
-            return; // 本次 Tick 已处理自动返回，不再继续 OBT 检查
+            // 可选：打开这行看门控原因
+            // Debug.Log($"[OB] Main idle={stayed:0.00}/{mainIdleSecondsForOBT:0.00}, fired={mainOBTFiredThisStay}");
         }
 
-        if (!planetIdleOBTFired && planetNoActionSecondsForOBT > 0f && sinceAction >= planetNoActionSecondsForOBT)
-        {
-            if (!string.IsNullOrEmpty(planetOBTTrigger))
-            {
-                obAnimator.ResetTrigger(planetOBTTrigger);
-                obAnimator.SetTrigger(planetOBTTrigger);
-            }
-            planetIdleOBTFired = true; // 记账：本轮 Planet 已出现过 OBT
-        }
+        // Planet 相关状态在切换处重置，这里不要动 planetIdleOBTFired
+        return;
     }
 
+    // ===== Planet 面板逻辑 =====
+    if (planetEnteredAt < 0f) { planetEnteredAt = Time.time; /* 本轮首次进入 */ }
+
+    // 最近“有动作”的时间：首选 World（更准确），否则退化为进面板时间
+    float sinceAction = (boundWorld != null && boundWorld.LastActionTime > 0f)
+        ? Time.time - boundWorld.LastActionTime
+        : Time.time - planetEnteredAt;
+
+    // ---- 自动返回（单独受节流控制）----
+    bool autoBackEligible = (_nextAutoBackEligibleAt <= 0f) || (Time.time >= _nextAutoBackEligibleAt);
+    if (autoBackToMainSeconds > 0f && sinceAction >= autoBackToMainSeconds && autoBackEligible)
+    {
+        if (!isPlayingAnimation)
+        {
+            Debug.Log($"[OB] ⌛ 无动作 {sinceAction:0.00}s ≥ {autoBackToMainSeconds:0.00}s → 自动返回 Main");
+            RequestTransition("AutoBackTimeout");
+            _nextAutoBackEligibleAt = Time.time + autoBackToMainSeconds; // 触发后推迟下一次
+        }
+        return; // 自动返回已处理，本次 tick 结束
+    }
+
+    // ---- PlanetOBT（不受节流）----
+    if (!planetIdleOBTFired && planetNoActionSecondsForOBT > 0f && sinceAction >= planetNoActionSecondsForOBT)
+    {
+        if (!string.IsNullOrEmpty(planetOBTTrigger))
+        {
+            obAnimator.ResetTrigger(planetOBTTrigger);
+            obAnimator.SetTrigger(planetOBTTrigger);
+            Debug.Log($"[OB] PlanetOBT 触发：sinceAction={sinceAction:0.00}s ≥ {planetNoActionSecondsForOBT:0.00}s");
+        }
+        else Debug.LogWarning("[OB] PlanetOBTTrigger 为空，无法触发");
+        planetIdleOBTFired = true;
+    }
+    else
+    {
+        // 可选：打开这行看门控原因
+        // Debug.Log($"[OB] Planet idle={sinceAction:0.00}/{planetNoActionSecondsForOBT:0.00}, OBTfired={planetIdleOBTFired}, autoBackEligible={autoBackEligible}");
+    }
+}
+
+
     // 世界检测到“有动作”
-    void OnWorldUserAction() { TriggerPlanetOBEIfOnPlanet(); }
+    void OnWorldUserAction()
+    {
+        // ★ 刷新最近动作时间 + 顺延自动返回节流窗口
+        if (boundWorld != null) boundWorld.LastActionTime = Time.time; // ★
+        if (autoBackToMainSeconds > 0f)
+            _nextAutoBackEligibleAt = Time.time + autoBackToMainSeconds; // ★
+
+        TriggerPlanetOBEIfOnPlanet();
+    }
 
     // Planet 内触发 OBE（带去抖）
     void TriggerPlanetOBEIfOnPlanet()
@@ -653,14 +701,21 @@ public class FistGestureController : MonoBehaviour
         if (ReferenceEquals(boundWorld, target)) return;
 
         if (boundWorld != null)
+        {
             boundWorld.OnUserAction -= OnWorldUserAction;
+            boundWorld.OnIdleAutoHealthy -= OnWorldIdleAutoHealthy;
+        }
 
         boundWorld = target;
 
         if (boundWorld != null)
         {
             boundWorld.OnUserAction += OnWorldUserAction;
+            boundWorld.OnIdleAutoHealthy += OnWorldIdleAutoHealthy;
             Debug.Log($"[FistGesture] 🔗 绑定 WorldHealthCoordinator: {boundWorld.name}");
+
+            // ★ 绑定后兜底初始化 LastActionTime，避免 0 值导致“秒触发”
+            if (boundWorld.LastActionTime <= 0f) boundWorld.LastActionTime = Time.time; // ★
         }
         else
         {
@@ -674,6 +729,28 @@ public class FistGestureController : MonoBehaviour
 
             var peaces = panel.GetComponentsInChildren<PeaceSignTreeTriggerForSpawner>(true);
             foreach (var p in peaces) { p.world = boundWorld; }
+        }
+    }
+
+    // —— World 空闲自动健康触发：拉起 MIDI7、下降 ambient（模拟 Victory 短暂拉起） ——
+    void OnWorldIdleAutoHealthy()
+    {
+        // ★ 系统触发也视为一次“动作”，刷新 LastActionTime 并顺延节流
+        if (boundWorld != null) boundWorld.LastActionTime = Time.time; // ★
+        if (autoBackToMainSeconds > 0f)
+            _nextAutoBackEligibleAt = Time.time + autoBackToMainSeconds; // ★
+
+        var panel = panelController != null ? panelController.current : null;
+        if (panel == null) panel = mainPlanetPanel;
+        if (panel == null) return;
+
+        var shakings = panel.GetComponentsInChildren<Shaking>(true);
+        foreach (var s in shakings)
+        {
+            if (s != null && s.isActiveAndEnabled)
+            {
+                s.OnVictoryGesture(); // 无挥手超时也触发音频路由的“拉起/下压”
+            }
         }
     }
 

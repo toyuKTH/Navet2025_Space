@@ -3165,9 +3165,15 @@ MonoBehaviour:
   mainIdleSecondsForOBT: 10
   planetNoActionSecondsForOBT: 3
   planetOBEDebounce: 0.2
+  planetOBERequiresOBT: 1
+  mainOBERequiresOBT: 1
+  obLayerIndex: 0
+  planetOBTag: PlanetOB
+  planetOBStateNames: []
   soundPlayer: {fileID: 0}
   fistGestureSound: {fileID: 0}
   world: {fileID: 0}
+  autoBackToMainSeconds: 20
   gestureHoldDuration: 1
   requiredStableFrames: 3
   cooldownSeconds: 3
@@ -12067,7 +12073,7 @@ MonoBehaviour:
   victoryAmbientDownDelta: 0.3
   victoryHoldSeconds: 1.2
   waveHangTime: 0.4
-  debugGUI: 1
+  debugGUI: 0
   verboseLogs: 1
   summaryLogInterval: 1
   snapshotKey: 108
@@ -13440,7 +13446,7 @@ MonoBehaviour:
   victoryAmbientDownDelta: 0.3
   victoryHoldSeconds: 1.2
   waveHangTime: 0.4
-  debugGUI: 1
+  debugGUI: 0
   verboseLogs: 1
   summaryLogInterval: 1
   snapshotKey: 108
@@ -14648,7 +14654,7 @@ MonoBehaviour:
   victoryAmbientDownDelta: 0.3
   victoryHoldSeconds: 1.2
   waveHangTime: 0.4
-  debugGUI: 1
+  debugGUI: 0
   verboseLogs: 1
   summaryLogInterval: 1
   snapshotKey: 108
