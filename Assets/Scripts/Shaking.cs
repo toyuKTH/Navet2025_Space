@@ -358,7 +358,7 @@ public class Shaking : MonoBehaviour
             {
                 // 优先在本组件上下文（所在面板）内寻找
                 world = GetComponentInParent<WorldHealthCoordinator>();
-                if (world == null) world = FindObjectOfType<WorldHealthCoordinator>();
+                if (world == null) world = GetComponentInParent<WorldHealthCoordinator>();
             }
             if (world != null)
             {
